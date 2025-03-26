@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Eye, EyeOff, Lock, Mail } from "lucide-react"
+import { Eye, EyeOff, Lock, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -88,27 +88,22 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900">Admin Dashboard</h1>
-          <p className="mt-2 text-gray-600">Sign in to your account</p>
-        </div>
 
         <Card className="border-gray-200">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-center">Login</CardTitle>
-            <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
+                    <User className="h-5 w-5 text-gray-400" />
                   </div>
                   <Input
-                    type="email"
-                    name="email"
-                    placeholder="Email address"
+                    type="text"
+                    name="login"
+                    placeholder="Masukkan Username Atau Email"
                     value={formData.email}
                     onChange={handleChange}
                     className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
@@ -125,7 +120,7 @@ export default function LoginPage() {
                   <Input
                     type={showPassword ? "text" : "password"}
                     name="password"
-                    placeholder="Password"
+                    placeholder="Masukkan Password"
                     value={formData.password}
                     onChange={handleChange}
                     className={`pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
@@ -148,27 +143,16 @@ export default function LoginPage() {
                 <div className="flex items-center space-x-2">
                   <Checkbox id="remember-me" checked={formData.rememberMe} onCheckedChange={handleCheckboxChange} />
                   <label htmlFor="remember-me" className="text-sm text-gray-600">
-                    Remember me
+                    Ingat Saya
                   </label>
                 </div>
-                <a href="/forgot-password" className="text-sm text-gray-600 hover:text-gray-900">
-                  Forgot password?
-                </a>
               </div>
 
-              <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800" disabled={loading}>
+              <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800 text-white" disabled={loading}>
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex justify-center">
-            <p className="text-sm text-gray-600">
-              Don&apos;t have an account?{" "}
-              <a href="/register" className="font-medium text-gray-900 hover:underline">
-                Register
-              </a>
-            </p>
-          </CardFooter>
         </Card>
       </div>
     </div>

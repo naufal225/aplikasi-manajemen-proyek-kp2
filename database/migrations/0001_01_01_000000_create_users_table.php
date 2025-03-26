@@ -18,7 +18,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('tipe_admin', ['admin', 'owner']);
+            $table->enum('jenis_kelamin', ['LAKI-LAKI', 'PEREMPUAN']);
             $table->string('nomor_telepon');
+            $table->string('alamat');
+            $table->date('tanggal_lahir');
             $table->rememberToken();
             $table->timestamps();
         });

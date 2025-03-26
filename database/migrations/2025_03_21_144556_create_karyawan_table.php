@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('nama_lengkap');
             $table->string('email')->unique();
             $table->string('username')->unique();
-            $table->dateTime('tanggal_lahir');
+            $table->enum('jenis_kelamin', ['LAKI-LAKI', 'PEREMPUAN']);
             $table->string('nomor_telepon');
+            $table->string('alamat');
+            $table->date('tanggal_lahir');
             $table->string('password');
             $table->timestamps();
         });
