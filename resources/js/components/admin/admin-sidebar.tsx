@@ -11,13 +11,18 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { useEffect, useState } from "react"
 
 export function AdminSidebar() {
-  const pathname = document.location.href
+    const [currentPath, setCurrentPath] = useState("/")
 
-  const isPathActive = (path: string) => {
-    return pathname === path || pathname?.startsWith(`${path}/`)
-  }
+    useEffect(() => {
+      setCurrentPath(window.location.pathname)
+    }, [])
+
+    const isPathActive = (path: string) => {
+      return currentPath === path || currentPath.startsWith(`${path}/`)
+    }
 
   // Admin menu items - added divisions and employees
   const menuItems = [

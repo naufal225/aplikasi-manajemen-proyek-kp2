@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Clock, FileText, Trophy, Users, Briefcase } from "lucide-react"
 import { useEffect, useState } from "react"
+import { Head } from "@inertiajs/react"
 import { AdminLayout } from "@/layouts/admin-layout"
 
 // Mock data for the dashboard
@@ -115,6 +116,7 @@ export default function DashboardPage() {
 
   return (
     <AdminLayout>
+      <Head title="Dashboard"/>
       <div className="flex flex-col gap-6 overflow-x-hidden w-full">
         {/* Welcome section */}
         <div className="flex flex-col gap-2 w-full">

@@ -23,16 +23,16 @@ class AuthController extends Controller
         // Cek apakah login menggunakan email atau username
         $field = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-        if (Auth::attempt([$field => $credentials['login'], 'password' => $credentials['password']])) {
-            $user = Auth::user();
-            $token = $user->createToken('auth_token')->plainTextToken;
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Login berhasil!',
-                'user' => $user,
-                'token' => $token
-            ], 200);
+        if (Auth::attempt([$field => $credentials['login'], 'password' => $credentials['password']])) {
+            session()->regenerate();
+            $user = Auth::user();
+
+            if (!auth()->check()) {
+                return response()->json(['error' => 'Auth attempt succeeded but user is not authenticated'], 500);
+            }
+
+            return redirect('/dashboard');
         }
 
         return response()->json([

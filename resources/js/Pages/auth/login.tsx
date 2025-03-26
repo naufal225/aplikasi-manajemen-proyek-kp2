@@ -7,19 +7,21 @@ import { Eye, EyeOff, Lock, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { router } from "@inertiajs/react"
+import { router, Head } from "@inertiajs/react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import axios from "axios"
+import { AxiosError } from "axios"
+import Swal from "sweetalert2"
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
-    email: "",
+    login: "",
     password: "",
-    rememberMe: false,
   })
   const [errors, setErrors] = useState({
-    email: "",
+    login: "",
     password: "",
   })
 
@@ -48,13 +50,10 @@ export default function LoginPage() {
 
   const validateForm = () => {
     let valid = true
-    const newErrors = { email: "", password: "" }
+    const newErrors = { login: "", password: "" }
 
-    if (!formData.email) {
-      newErrors.email = "Email is required"
-      valid = false
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid"
+    if (!formData.login) {
+      newErrors.login = "Email or Username is required"
       valid = false
     }
 
@@ -70,25 +69,47 @@ export default function LoginPage() {
     return valid
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
-    setLoading(true)
+    setLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false)
-      // Redirect to dashboard on successful login
-      router.visit("/dashboard")
-    }, 1500)
-  }
+    try {
+        const response = await axios.post('/login', formData);
+
+        // Simpan token di localStorage atau sessionStorage
+        localStorage.setItem("auth_token", response.data.token);
+
+        // Redirect ke dashboard setelah login berhasil
+        router.get('/dashboard');
+
+    } catch (error: any) {
+        if (error.response && error.response.status === 401) {
+            setErrors((prev) => ({
+                ...prev,
+                login: "Invalid credentials",
+                password: "",
+            }));
+            Swal.fire({
+                title: 'Error!',
+                text: 'Username atau Email atau Password salah',
+                icon: 'error',
+                confirmButtonText: 'Cool'
+              })
+        } else {
+            Swal.fire
+        }
+    } finally {
+        setLoading(false);
+    }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
-
+        <Head title="Login"/>
         <Card className="border-gray-200">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-center">Login</CardTitle>
@@ -104,12 +125,12 @@ export default function LoginPage() {
                     type="text"
                     name="login"
                     placeholder="Masukkan Username Atau Email"
-                    value={formData.email}
+                    value={formData.login}
                     onChange={handleChange}
-                    className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
+                    className={`pl-10 ${errors.login ? "border-red-500" : ""}`}
                   />
                 </div>
-                {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+                {errors.login && <p className="text-red-500 text-sm">{errors.login}</p>}
               </div>
 
               <div className="space-y-2">
@@ -130,23 +151,23 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
-                    ) : (
                       <Eye className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
                     )}
                   </div>
                 </div>
                 {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
               </div>
 
-              <div className="flex items-center justify-between">
+              {/* <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Checkbox id="remember-me" checked={formData.rememberMe} onCheckedChange={handleCheckboxChange} />
                   <label htmlFor="remember-me" className="text-sm text-gray-600">
                     Ingat Saya
                   </label>
                 </div>
-              </div>
+              </div> */}
 
               <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800 text-white" disabled={loading}>
                 {loading ? "Signing in..." : "Sign in"}
