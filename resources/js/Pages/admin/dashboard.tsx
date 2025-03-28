@@ -7,6 +7,9 @@ import { Clock, FileText, Trophy, Users, Briefcase } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Head } from "@inertiajs/react"
 import { AdminLayout } from "@/layouts/admin-layout"
+import axios from "axios"
+import { AxiosResponse, AxiosError } from "axios"
+import Swal from "sweetalert2"
 
 // Mock data for the dashboard
 const mockTeamMembers = [
@@ -104,6 +107,23 @@ export default function DashboardPage() {
     lateProjects: 3,
   })
 
+  const [nama, setNama] = useState("Budi");
+
+  const getNama = async () => {
+    axios.get('/api/admin/getUserNamaLengkap')
+        .then(response => {
+            setNama(response.data.data.nama_lengkap)
+        })
+        .catch(err => {
+            Swal.fire({
+                title: 'Error!',
+                text: err,
+                icon: 'error',
+                confirmButtonText: 'Cool'
+              })
+        })
+  }
+
   const [greeting, setGreeting] = useState("")
 
   useEffect(() => {
@@ -112,6 +132,8 @@ export default function DashboardPage() {
     else if (hour < 15) setGreeting("Selamat Siang")
     else if (hour < 19) setGreeting("Selamat Sore")
     else setGreeting("Selamat Malam")
+
+    getNama();
   }, [])
 
   return (
@@ -120,7 +142,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-6 overflow-x-hidden w-full">
         {/* Welcome section */}
         <div className="flex flex-col gap-2 w-full">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{greeting}, Admin!</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{greeting}, {nama}</h1>
           <p className="text-sm md:text-base text-muted-foreground">
             Selamat datang di dashboard Manajemen Proyek. Berikut adalah ringkasan data terkini.
           </p>
