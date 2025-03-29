@@ -27,7 +27,7 @@ export function AdminSidebar() {
   // Admin menu items - added divisions and employees
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, href: "/dashboard" },
-    { id: "divisions", label: "Divisi", icon: Building2, href: "/divisions" },
+    { id: "divisions", label: "Divisi", icon: Building2, href: "/kelola-data-divisi" },
     { id: "employees", label: "Karyawan", icon: Users, href: "/employees" },
     { id: "projects", label: "Proyek", icon: Briefcase, href: "/projects" },
   ]

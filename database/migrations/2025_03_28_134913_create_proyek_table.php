@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('nama_proyek');
             $table->text('deskripsi_proyek')->nullable();
             $table->date('tenggat_waktu');
+            $table->float('progress')->default(0);
+            $table->enum('status', ['pending','in-progress','waiting_for_review', 'done'])->default('pending');
+            $table->date('tanggal_mulai');
             $table->timestamps();
         });
     }
