@@ -67,7 +67,7 @@ class DashboardAdminController extends Controller
                 'tanggal_mulai' => $item->tanggal_mulai,
                 'tenggat_waktu' => $item->tenggat_waktu,
                 'bulan_mulai' => Carbon::parse($item->tanggal_mulai)->month,
-                'durasi' => Carbon::parse($item->tanggal_mulai)->diffInMonths(Carbon::parse($item->tenggat_waktu)), // Hitung selisih bulan
+                'durasi' => Carbon::parse($item->tenggat_waktu)->month - Carbon::parse($item->tanggal_mulai)->month + 1, // Hitung selisih bulan
                 'progress' => $item->progress,
                 'status' => $item->status === 'done' ? 'completed' : $item->status,
             ];
@@ -94,6 +94,9 @@ class DashboardAdminController extends Controller
                 ];
             });
 
-        return response()->json($topKaryawan);
+        return response()->json([
+            'status' => 'success',
+            'data' => $topKaryawan
+        ]);
     }
 }

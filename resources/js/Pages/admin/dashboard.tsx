@@ -296,7 +296,7 @@ function DashboardContent() {
                       const isProjectMonth =
                         monthIndex + 1 >= project.bulan_mulai && monthIndex + 1 < project.bulan_mulai + project.durasi
                       const isStartMonth = monthIndex + 1 === project.bulan_mulai
-                      const isEndMonth = monthIndex + 1 === project.bulan_mulai + project.durasi - 1
+                      const isEndMonth = monthIndex + 1 === project.bulan_mulai + Math.round(project.durasi) - 1
 
                       let bgColor = ""
                       if (isProjectMonth) {
