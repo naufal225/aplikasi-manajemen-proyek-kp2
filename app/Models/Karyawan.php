@@ -16,4 +16,8 @@ class Karyawan extends Model
         return $this->belongsTo(Divisi::class, 'id_divisi');
     }
 
+    public function manajerFor() {
+        return $this->belongsTo(Divisi::class, 'id_manajer');
+    }
+
 }

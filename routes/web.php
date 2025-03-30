@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardAdminController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\KelolaDataDivisiAdminController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -20,6 +21,15 @@ Route::middleware('auth')->prefix('/api')->group(function() {
 
         Route::get('/getTopPerformers', [DashboardAdminController::class, 'getTopPerformers']);
 
+        Route::get('/getAllDataDivisi', [KelolaDataDivisiAdminController::class, 'getAllDataDivisi']);
+
+        Route::get('/getAllDataKaryawanForDivisi', [KelolaDataDivisiAdminController::class, 'getAllDataKaryawanForDivisi']);
+
+        Route::post('/storeDataDivisi', [KelolaDataDivisiAdminController::class, 'storeDataDivisi']);
+
+        Route::put('/updateDataDivisi', [KelolaDataDivisiAdminController::class, 'updateDataDivisi']);
+
+        Route::delete('/deleteDivisi', [KelolaDataDivisiAdminController::class, 'deleteDivisi']);
     });
 
 });
@@ -32,7 +42,15 @@ Route::middleware(['guest'])->group(function (): void {
 Route::middleware(['auth', 'web'])->group(function() {
     Route::get('/dashboard', [DashboardAdminController::class, 'index'])->name('dashboard');
 
-    Route::get('/kelola-data-divisi', function() {
-        return Inertia::render('admin/divisi/kelola-divisi');
+    Route::prefix('/kelola-data-divisi')->group(function() {
+        Route::get('/', function() {
+            return Inertia::render('admin/divisi/kelola-divisi');
+        });
+
+        Route::get('/tambah', function() {
+            return Inertia::render('admin/divisi/tambah/tambah-divisi');
+        });
     });
+
+
 });

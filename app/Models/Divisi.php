@@ -11,7 +11,11 @@ class Divisi extends Model
     protected $guarded = ['id'];
 
     public function karyawan() {
-        return $this->hasMany(Karyawan::class, 'id_karyawan');
+        return $this->hasMany(Karyawan::class, 'id_divisi');
+    }
+
+    public function proyek() {
+        return $this->hasMany(Proyek::class, 'id_divisi');
     }
 
     public function manajer() {
