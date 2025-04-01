@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Edit, Plus, Trash2, Search, MoreVertical, Eye } from "lucide-react"
+import { Edit, Plus, Trash2, Search, MoreVertical, Eye, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -29,15 +29,13 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import axios from "axios"
 import { AdminLayout } from "@/layouts/admin-layout"
-import { router } from "@inertiajs/react"
 import Swal from "sweetalert2"
 
 // Define interfaces for the models
-import { Divisi } from "@/models/Models"
-
-import { KaryawanForDivisi } from "@/models/Models"
+import type { Divisi, KaryawanForDivisi } from "@/models/Models"
 
 // Schema validasi untuk form divisi
 const divisiFormSchema = z.object({
@@ -71,7 +69,10 @@ export default function KelolaDivisi() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [selectedDivisi, setSelectedDivisi] = useState<Divisi>()
 
-   const [error, setError] = useState<string | null>(null)
+  // Add loading states
+  const [isLoadingDivisi, setIsLoadingDivisi] = useState(true)
+  const [isLoadingKaryawan, setIsLoadingKaryawan] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Inisialisasi form dengan react-hook-form dan zod
   const form = useForm({
@@ -86,29 +87,41 @@ export default function KelolaDivisi() {
 
   //mendapatkan data divisi dari api
   const getAllDataDivisi = async () => {
-    axios
-      .get<{ status: string; data: Divisi[] }>("/api/admin/getAllDataDivisi")
-      .then((response) => {
-        if (response.data.status == "success") {
-          setDivisi(response.data.data)
-        }
-      })
-      .catch((err) => {
-        console.error(err)
-      })
+    setIsLoadingDivisi(true)
+    setError(null)
+
+    try {
+      const response = await axios.get<{ status: string; data: Divisi[] }>("/api/admin/getAllDataDivisi")
+      if (response.data.status === "success") {
+        setDivisi(response.data.data)
+      } else {
+        setError("Gagal memuat data divisi")
+      }
+    } catch (err) {
+      console.error(err)
+      setError("Terjadi kesalahan saat memuat data divisi")
+    } finally {
+      setIsLoadingDivisi(false)
+    }
   }
 
   const getAllDataKaryawanForDivisi = async () => {
-    axios
-      .get<{ status: string; data: KaryawanForDivisi[] }>("/api/admin/getAllDataKaryawanForDivisi")
-      .then((response) => {
-        if (response.data.status == "success") {
-          setKaryawan(response.data.data)
-        }
-      })
-      .catch((err) => {
-        console.error(err)
-      })
+    setIsLoadingKaryawan(true)
+
+    try {
+      const response = await axios.get<{ status: string; data: KaryawanForDivisi[] }>(
+        "/api/admin/getAllDataKaryawanForDivisi",
+      )
+      if (response.data.status === "success") {
+        setKaryawan(response.data.data)
+      } else {
+        console.error("Failed to fetch employee data")
+      }
+    } catch (err) {
+      console.error("Error fetching employees:", err)
+    } finally {
+      setIsLoadingKaryawan(false)
+    }
   }
 
   // Filter dan pagination data
@@ -161,7 +174,7 @@ export default function KelolaDivisi() {
   }
 
   const navigateToTambahDivisi = () => {
-    window.location.href = "/kelola-data-divisi/tambah"
+    window.location.href = "/divisi/tambah"
   }
 
   const resetForm = () => {
@@ -192,112 +205,86 @@ export default function KelolaDivisi() {
   }
 
   const handleHapusDivisi = (id: number | string) => {
-        Swal.fire({
-            title: "Apakah Anda yakin?",
-            text: "Divisi yang dihapus tidak dapat dikembalikan!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Ya, hapus!",
-            cancelButtonText: "Batal"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                axios.delete(`/api/admin/deleteDivisi`, { data: { id_divisi: id } })
-                    .then((response) => {
-                        getAllDataDivisi()
-                        Swal.fire(
-                            "Terhapus!",
-                            "Divisi telah berhasil dihapus.",
-                            "success"
-                        );
-                    })
-                    .catch((error) => {
-                        Swal.fire(
-                            "Gagal!",
-                            error.response?.data?.message || "Terjadi kesalahan saat menghapus divisi.",
-                            "error"
-                        );
-                    });
-            }
-        });
-    };
-
-//   const onSubmitEdit = async (data: any) => {
-//     axios
-//       .put("/api/admin/updateDataDivisi", data)
-//       .then((response) => {
-//         if (response.data.status == "success") {
-//           router.visit("/kelola-data-divisi")
-//           Swal.fire({
-//             title: "Berhasil!",
-//             text: "Berhasil memperbarui data divisi",
-//             icon: "success",
-//             confirmButtonText: "Ok",
-//           })
-//         }
-//       })
-//       .catch((err) => {
-//         console.error(err)
-//       })
-//   }
+    Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Divisi yang dihapus tidak dapat dikembalikan!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios
+          .delete(`/api/admin/deleteDivisi`, { data: { id_divisi: id } })
+          .then((response) => {
+            getAllDataDivisi()
+            Swal.fire("Terhapus!", "Divisi telah berhasil dihapus.", "success")
+          })
+          .catch((error) => {
+            Swal.fire("Gagal!", error.response?.data?.message || "Terjadi kesalahan saat menghapus divisi.", "error")
+          })
+      }
+    })
+  }
 
   const onSubmitEdit = async (data: any) => {
     try {
-            setError(null);
+      setError(null)
 
-            if (isEdit && currentId) {
-                // SweetAlert konfirmasi sebelum update
-                setDialogOpen(false)
+      if (isEdit && currentId) {
+        // SweetAlert konfirmasi sebelum update
+        setDialogOpen(false)
 
-                const result = await Swal.fire({
-                    title: "Apakah Anda yakin?",
-                    text: "Apakah Anda yakin untuk memperbarui data divisi?!",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#d33",
-                    cancelButtonColor: "#3085d6",
-                    confirmButtonText: "Ya, Perbarui!",
-                    cancelButtonText: "Batal"
-                });
+        const result = await Swal.fire({
+          title: "Apakah Anda yakin?",
+          text: "Apakah Anda yakin untuk memperbarui data divisi?!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Ya, Perbarui!",
+          cancelButtonText: "Batal",
+        })
 
-                if (result.isConfirmed) {
-                    // Kirim permintaan update setelah konfirmasi
-                    const response = await axios.put(`/api/admin/updateDataDivisi`, data);
+        if (result.isConfirmed) {
+          // Kirim permintaan update setelah konfirmasi
+          const response = await axios.put(`/api/admin/updateDataDivisi`, data)
 
-                    if (response.data.status === "success") {
-                        // Perbarui data divisi
-                        getAllDataDivisi();
+          if (response.data.status === "success") {
+            // Perbarui data divisi
+            getAllDataDivisi()
 
-                        // Tampilkan notifikasi sukses
-                        Swal.fire("Berhasil!", "Data divisi berhasil diperbarui.", "success");
-                        setDialogOpen(false);
+            // Tampilkan notifikasi sukses
+            Swal.fire("Berhasil!", "Data divisi berhasil diperbarui.", "success")
+            setDialogOpen(false)
 
-                        // Reset form setelah berhasil
-                        resetForm();
-                    }
-                } else {
-                    setDialogOpen(true)
-                }
-            }
-        } catch (err: any) {
-            console.error("Error saving employee:", err);
-
-            // Tangani error validasi dari API
-            if (err.response?.status === 422 && err.response?.data?.errors) {
-                const apiErrors = err.response.data.errors;
-
-                Object.keys(apiErrors).forEach((key) => {
-                    form.setError(key as any, {
-                        type: "server",
-                        message: Array.isArray(apiErrors[key]) ? apiErrors[key][0] : apiErrors[key],
-                    });
-                });
-            } else {
-                setError(err.response?.data?.message || "Terjadi kesalahan saat menyimpan data karyawan.");
-                Swal.fire("Gagal!", err.response?.data?.message || "Terjadi kesalahan saat menyimpan data karyawan.", "error");
-            }
+            // Reset form setelah berhasil
+            resetForm()
+          }
+        } else {
+          setDialogOpen(true)
         }
+      }
+    } catch (err: any) {
+      console.error("Error saving division:", err)
+
+      // Tangani error validasi dari API
+      if (err.response?.status === 422 && err.response?.data?.errors) {
+        const apiErrors = err.response.data.errors
+
+        Object.keys(apiErrors).forEach((key) => {
+          form.setError(key as any, {
+            type: "server",
+            message: Array.isArray(apiErrors[key]) ? apiErrors[key][0] : apiErrors[key],
+          })
+        })
+      } else {
+        setError(err.response?.data?.message || "Terjadi kesalahan saat menyimpan data divisi.")
+        Swal.fire("Gagal!", err.response?.data?.message || "Terjadi kesalahan saat menyimpan data divisi.", "error")
+      }
+    }
   }
 
   // Pagination handlers
@@ -388,7 +375,7 @@ export default function KelolaDivisi() {
   }
 
   // Calculate indices for displaying "Showing X to Y of Z entries"
-  const indexOfFirstItem = (currentPage - 1) * rowsPerPage + 1
+  const indexOfFirstItem = filteredDivisi.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1
   const indexOfLastItem = Math.min(currentPage * rowsPerPage, filteredDivisi.length)
 
   const handleDetailDivisi = (id: number) => {
@@ -408,6 +395,13 @@ export default function KelolaDivisi() {
             <Plus className="mr-2 h-4 w-4" /> Tambah Divisi
           </Button>
         </div>
+
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         <Card>
           <CardHeader>
@@ -461,15 +455,27 @@ export default function KelolaDivisi() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {getCurrentPageData().length > 0 ? (
+                    {isLoadingDivisi ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-6">
+                          Memuat data divisi...
+                        </TableCell>
+                      </TableRow>
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-6 text-destructive">
+                          {error}
+                        </TableCell>
+                      </TableRow>
+                    ) : getCurrentPageData().length > 0 ? (
                       getCurrentPageData().map((item, index) => (
                         <TableRow key={item.id}>
                           <TableCell>{(currentPage - 1) * rowsPerPage + index + 1}</TableCell>
                           <TableCell className="font-medium">{item.nama_divisi}</TableCell>
                           <TableCell>{item.deskripsi || "Tidak ada deskripsi"}</TableCell>
                           <TableCell>{item.nama_manajer || "Tidak ada manajer"}</TableCell>
-                          <TableCell>{item.jumlah_proyek}</TableCell>
-                          <TableCell>{item.jumlah_karyawan}</TableCell>
+                          <TableCell>{item.jumlah_proyek || 0}</TableCell>
+                          <TableCell>{item.jumlah_karyawan || 0}</TableCell>
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -501,7 +507,7 @@ export default function KelolaDivisi() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-6">
+                        <TableCell colSpan={7} className="text-center py-6">
                           {searchTerm ? "Tidak ada divisi yang sesuai dengan pencarian" : "Tidak ada data divisi"}
                         </TableCell>
                       </TableRow>
@@ -590,29 +596,37 @@ export default function KelolaDivisi() {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Pilih manajer divisi" />
+                            <SelectValue
+                              placeholder={isLoadingKaryawan ? "Memuat data karyawan..." : "Pilih manajer divisi"}
+                            />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="null">Tidak ada manajer</SelectItem>
-                          {karyawan
-                            .filter((manager) => {
-                              // Include employees who:
-                              // 1. Don't have a division (null/undefined)
-                              // 2. Belong to the current division being edited
-                              // 3. Are already the manager of this division (id_manajer matches)
-                              return (
-                                !manager.divisi ||
-                                manager.divisi.id === currentId ||
-                                manager.id === selectedDivisi?.id_manajer
-                              )
-                            })
-                            .map((manager) => (
-                              <SelectItem key={manager.id} value={String(manager.id)}>
-                                {manager.nama_karyawan}{" "}
-                                {manager.divisi ? `- ${manager.divisi.nama_divisi}` : "(Belum ada divisi)"}
-                              </SelectItem>
-                            ))}
+                          {isLoadingKaryawan ? (
+                            <SelectItem value="loading" disabled>
+                              Memuat data karyawan...
+                            </SelectItem>
+                          ) : (
+                            karyawan
+                              .filter((manager) => {
+                                // Include employees who:
+                                // 1. Don't have a division (null/undefined)
+                                // 2. Belong to the current division being edited
+                                // 3. Are already the manager of this division (id_manajer matches)
+                                return (
+                                  !manager.divisi ||
+                                  manager.divisi.id === currentId ||
+                                  manager.id === selectedDivisi?.id_manajer
+                                )
+                              })
+                              .map((manager) => (
+                                <SelectItem key={manager.id} value={String(manager.id)}>
+                                  {manager.nama_karyawan}{" "}
+                                  {manager.divisi ? `- ${manager.divisi.nama_divisi}` : "(Belum ada divisi)"}
+                                </SelectItem>
+                              ))
+                          )}
                         </SelectContent>
                       </Select>
                       <FormDescription>
@@ -634,7 +648,9 @@ export default function KelolaDivisi() {
                   <Button variant="outline" type="button" onClick={() => setDialogOpen(false)}>
                     Batal
                   </Button>
-                  <Button type="submit">Simpan Perubahan</Button>
+                  <Button type="submit" disabled={isLoadingKaryawan}>
+                    {isLoadingKaryawan ? "Memuat..." : "Simpan Perubahan"}
+                  </Button>
                 </DialogFooter>
               </form>
             </Form>
@@ -663,7 +679,10 @@ export default function KelolaDivisi() {
                   <div>{selectedDivisi.nama_manajer || "Tidak ada manajer"}</div>
 
                   <div className="font-medium">Jumlah Karyawan:</div>
-                  <div>{getJumlahKaryawan(selectedDivisi.id)}</div>
+                  <div>{selectedDivisi.jumlah_karyawan || 0}</div>
+
+                  <div className="font-medium">Jumlah Proyek:</div>
+                  <div>{selectedDivisi.jumlah_proyek || 0}</div>
                 </div>
                 <DialogFooter>
                   <Button onClick={() => setDetailDialogOpen(false)}>Tutup</Button>
