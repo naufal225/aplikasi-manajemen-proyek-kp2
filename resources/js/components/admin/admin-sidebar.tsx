@@ -28,7 +28,7 @@ export function AdminSidebar() {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, href: "/dashboard" },
     { id: "divisions", label: "Divisi", icon: Building2, href: "/kelola-data-divisi" },
-    { id: "employees", label: "Karyawan", icon: Users, href: "/employees" },
+    { id: "employees", label: "Karyawan", icon: Users, href: "/kelola-data-karyawan" },
     { id: "projects", label: "Proyek", icon: Briefcase, href: "/projects" },
   ]
 

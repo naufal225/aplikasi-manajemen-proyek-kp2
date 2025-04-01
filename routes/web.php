@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardAdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\KelolaDataDivisiAdminController;
+use App\Http\Controllers\Admin\KelolaDataKaryawanAdminController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -30,6 +31,14 @@ Route::middleware('auth')->prefix('/api')->group(function() {
         Route::put('/updateDataDivisi', [KelolaDataDivisiAdminController::class, 'updateDataDivisi']);
 
         Route::delete('/deleteDivisi', [KelolaDataDivisiAdminController::class, 'deleteDivisi']);
+
+        Route::get('/getAllDataKaryawan', [KelolaDataKaryawanAdminController::class, 'getAllDataKaryawan']);
+
+        Route::post('/storeDataKaryawan', [KelolaDataKaryawanAdminController::class, 'storeDataKaryawan']);
+
+        Route::put('/updateDataKaryawan/{id}', [KelolaDataKaryawanAdminController::class, 'updateDataKaryawan']);
+
+        Route::delete('/deleteKaryawan', [KelolaDataKaryawanAdminController::class, 'deleteKaryawan']);
     });
 
 });
@@ -49,6 +58,16 @@ Route::middleware(['auth', 'web'])->group(function() {
 
         Route::get('/tambah', function() {
             return Inertia::render('admin/divisi/tambah/tambah-divisi');
+        });
+    });
+
+    Route::prefix('/kelola-data-karyawan')->group(function() {
+        Route::get('/', function() {
+            return Inertia::render('admin/karyawan/kelola-karyawan');
+        });
+
+        Route::get('/tambah', function() {
+            return Inertia::render('admin/karyawan/tambah/tambah-karyawan');
         });
     });
 

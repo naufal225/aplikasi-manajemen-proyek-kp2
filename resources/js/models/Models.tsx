@@ -39,3 +39,15 @@ export interface KaryawanForDivisi {
     nama_karyawan: string,
     divisi: Divisi | null
 }
+
+export interface Karyawan {
+    id: number | null,
+    nama_lengkap: string,
+    divisi: Divisi,
+    email: string,
+    alamat: string,
+    jenis_kelamin: string,
+    nomor_telepon: string,
+    username: string,
+    tanggal_lahir: string
+}
