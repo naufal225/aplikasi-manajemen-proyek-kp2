@@ -71,6 +71,8 @@ export default function KelolaDivisi() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [selectedDivisi, setSelectedDivisi] = useState<Divisi>()
 
+   const [error, setError] = useState<string | null>(null)
+
   // Inisialisasi form dengan react-hook-form dan zod
   const form = useForm({
     resolver: zodResolver(divisiFormSchema),
@@ -221,23 +223,81 @@ export default function KelolaDivisi() {
         });
     };
 
+//   const onSubmitEdit = async (data: any) => {
+//     axios
+//       .put("/api/admin/updateDataDivisi", data)
+//       .then((response) => {
+//         if (response.data.status == "success") {
+//           router.visit("/kelola-data-divisi")
+//           Swal.fire({
+//             title: "Berhasil!",
+//             text: "Berhasil memperbarui data divisi",
+//             icon: "success",
+//             confirmButtonText: "Ok",
+//           })
+//         }
+//       })
+//       .catch((err) => {
+//         console.error(err)
+//       })
+//   }
+
   const onSubmitEdit = async (data: any) => {
-    axios
-      .put("/api/admin/updateDataDivisi", data)
-      .then((response) => {
-        if (response.data.status == "success") {
-          router.visit("/kelola-data-divisi")
-          Swal.fire({
-            title: "Berhasil!",
-            text: "Berhasil memperbarui data divisi",
-            icon: "success",
-            confirmButtonText: "Ok",
-          })
+    try {
+            setError(null);
+
+            if (isEdit && currentId) {
+                // SweetAlert konfirmasi sebelum update
+                setDialogOpen(false)
+
+                const result = await Swal.fire({
+                    title: "Apakah Anda yakin?",
+                    text: "Apakah Anda yakin untuk memperbarui data divisi?!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Ya, Perbarui!",
+                    cancelButtonText: "Batal"
+                });
+
+                if (result.isConfirmed) {
+                    // Kirim permintaan update setelah konfirmasi
+                    const response = await axios.put(`/api/admin/updateDataDivisi`, data);
+
+                    if (response.data.status === "success") {
+                        // Perbarui data divisi
+                        getAllDataDivisi();
+
+                        // Tampilkan notifikasi sukses
+                        Swal.fire("Berhasil!", "Data divisi berhasil diperbarui.", "success");
+                        setDialogOpen(false);
+
+                        // Reset form setelah berhasil
+                        resetForm();
+                    }
+                } else {
+                    setDialogOpen(true)
+                }
+            }
+        } catch (err: any) {
+            console.error("Error saving employee:", err);
+
+            // Tangani error validasi dari API
+            if (err.response?.status === 422 && err.response?.data?.errors) {
+                const apiErrors = err.response.data.errors;
+
+                Object.keys(apiErrors).forEach((key) => {
+                    form.setError(key as any, {
+                        type: "server",
+                        message: Array.isArray(apiErrors[key]) ? apiErrors[key][0] : apiErrors[key],
+                    });
+                });
+            } else {
+                setError(err.response?.data?.message || "Terjadi kesalahan saat menyimpan data karyawan.");
+                Swal.fire("Gagal!", err.response?.data?.message || "Terjadi kesalahan saat menyimpan data karyawan.", "error");
+            }
         }
-      })
-      .catch((err) => {
-        console.error(err)
-      })
   }
 
   // Pagination handlers
