@@ -8,6 +8,10 @@ use App\Models\Karyawan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Imports\KaryawanImport;
+use Illuminate\Support\Facades\Response;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class KelolaDataKaryawanAdminController extends Controller
 {
@@ -208,5 +212,59 @@ class KelolaDataKaryawanAdminController extends Controller
             'message' => 'Karyawan berhasil dihapus.'
         ], 200);
     }
+
+    public function importDataKaryawan(Request $request)
+    {
+        // Validasi file yang di-upload
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|mimes:xlsx,xls',
+        ]);
+
+        // Jika validasi gagal
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'File excel harus dalam format .xlsx atau .xls.'
+            ], 400);
+        }
+
+        try {
+            // Proses import data karyawan
+            Excel::import(new KaryawanImport, $request->file('file'));
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data karyawan berhasil diimport.'
+            ], 200);
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            // Tangani error validasi Excel (misalnya format kolom yang tidak sesuai)
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Ada kesalahan saat import data: .' . $e->getMessage()
+            ], 400);
+        } catch (\Exception $e) {
+            // Tangani kesalahan umum
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada sisi server: .' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function downloadTemplate()
+    {
+    // Tentukan path file template
+        $templatePath = public_path('templates/template_karyawan.xlsx');
+
+        // Cek apakah file ada
+        if (file_exists($templatePath)) {
+            return Response::download($templatePath);
+        } else {
+            return back()->with('error', 'Template tidak ditemukan!');
+        }
+    }
+
+
 
 }

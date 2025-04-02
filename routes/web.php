@@ -39,6 +39,9 @@ Route::middleware('auth')->prefix('/api')->group(function() {
         Route::put('/updateDataKaryawan/{id}', [KelolaDataKaryawanAdminController::class, 'updateDataKaryawan']);
 
         Route::delete('/deleteKaryawan', [KelolaDataKaryawanAdminController::class, 'deleteKaryawan']);
+
+        Route::post('/importDataKaryawan', [KelolaDataKaryawanAdminController::class, 'importDataKaryawan']);
+        Route::get('/downloadTemplate', [KelolaDataKaryawanAdminController::class, 'downloadTemplate']);
     });
 
 });

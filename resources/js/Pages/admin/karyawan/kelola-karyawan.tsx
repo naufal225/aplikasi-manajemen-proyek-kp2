@@ -314,31 +314,67 @@ export default function KelolaKaryawan() {
       message: "Sedang mengimpor data...",
     })
 
-    // Simulasi proses import
-    setTimeout(() => {
-      setImportStatus({
-        show: true,
-        success: true,
-        message: "Data berhasil diimpor. Karyawan telah ditambahkan.",
-      })
+    setImportDialogOpen(false)
 
-      // Reset file setelah berhasil
-      setSelectedFile(null)
-
-      // Refresh data
-      getAllDataKaryawan()
-
-      // Tutup dialog setelah beberapa detik
-      setTimeout(() => {
-        setImportDialogOpen(false)
-        setImportStatus({ show: false, success: false, message: "" })
-      }, 2000)
-    }, 1500)
+    Swal.fire({
+        title: "Apakah Anda yakin?",
+        text: "Apakah Anda yakin data karyawan sudah benar?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Ya, Simpan!",
+        cancelButtonText: "Batal"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            axios.post(`/api/admin/importDataKaryawan`, formData)
+                .then((response) => {
+                    if(response.data.status == 'success') {
+                        getAllDataKaryawan()
+                        Swal.fire(
+                            "Berhasil!",
+                            "Data karyawan telah berhasil diimport.",
+                            "success"
+                        );
+                        setImportStatus({
+                            show: false,
+                            success: true,
+                            message: "Berhasil Import Data"
+                        })
+                    } else {
+                        Swal.fire(
+                            "Gagal!",
+                            response?.data?.message || "Terjadi kesalahan saat import data karyawan.",
+                            "error"
+                        );
+                        setImportStatus({
+                            show: false,
+                            success: false,
+                            message: "Gagal Import Data"
+                        })
+                    }
+                })
+                .catch((error) => {
+                    Swal.fire(
+                        "Gagal!",
+                        error.response?.data?.message || "Terjadi kesalahan saat import data karyawan.",
+                        "error"
+                    );
+                    setImportStatus({
+                        show: false,
+                        success: false,
+                        message: "Gagal Import Data"
+                    })
+                })
+        } else {
+            setImportDialogOpen(true)
+        }
+    });
   }
 
   const handleDownloadTemplate = () => {
     // Implementasi download template
-    window.open("/api/admin/downloadTemplateKaryawan", "_blank")
+    window.open("/api/admin/downloadTemplate", "_blank")
   }
 
   const onSubmit = async (data: FormValues) => {
