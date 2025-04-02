@@ -4,13 +4,13 @@ namespace App\Imports;
 
 use App\Models\Karyawan;
 use App\Models\Divisi;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithUpserts;
-use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Illuminate\Validation\ValidationException;
 
 class KaryawanImport implements ToCollection, WithBatchInserts, WithUpserts, WithHeadingRow
 {
@@ -24,69 +24,87 @@ class KaryawanImport implements ToCollection, WithBatchInserts, WithUpserts, Wit
 
     public function collection(Collection $rows)
     {
-        if ($rows->isEmpty() || $rows->first() == null) {
-            return response()->json(['status' => 'error',  'message' => 'File kosong atau hanya berisi header tanpa data.'], 400);
+        if ($rows->isEmpty()) {
+            throw ValidationException::withMessages([
+                'file' => ['File kosong atau hanya berisi header tanpa data.']
+            ]);
         }
 
         // Ambil header kolom dan validasi
-        $header = $rows->first()->keys()->toArray();
+        $header = array_keys($rows->first()->toArray());
         $expectedHeader = [
-            'Nama Divisi',
-            'Nama Lengkap',
-            'Email',
-            'Username',
-            'Jenis Kelamin',
-            'Nomor Telepon',
-            'Alamat',
-            'Tanggal Lahir',
-            'Password',
+            'nama_divisi',
+            'nama_lengkap',
+            'email',
+            'username',
+            'jenis_kelamin',
+            'nomor_telepon',
+            'alamat',
+            'tanggal_lahir',
+            'password',
         ];
 
         // Cek apakah header sesuai dengan yang diharapkan
-        if ($header !== $expectedHeader) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Nama kolom pada file tidak sesuai. Pastikan nama kolom sesuai template.'
-            ], 400);
+        $missingColumns = array_diff($expectedHeader, $header);
+        if (!empty($missingColumns)) {
+            throw ValidationException::withMessages([
+                'file' => ['Nama kolom pada file tidak sesuai. Kolom yang hilang: ' . implode(', ', $missingColumns)]
+            ]);
         }
 
         // Cek apakah ada data di bawah header
-        if ($rows->count() <= 1) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'File kosong atau hanya berisi header, tidak ada data yang dapat diimpor'
-            ], 400);
+        if ($rows->count() === 0) {
+            throw ValidationException::withMessages([
+                'file' => ['File kosong atau hanya berisi header, tidak ada data yang dapat diimpor']
+            ]);
         }
 
         // Lanjutkan dengan import data jika header sesuai
-        foreach ($rows as $index => $row) {
-            if ($index === 0) continue; // Lewati header
+        foreach ($rows as $row) {
+            // Skip empty rows
+            if (empty(array_filter($row->toArray()))) {
+                continue;
+            }
 
             // Ambil ID divisi berdasarkan nama divisi
-            $divisi = Divisi::where('nama_divisi', $row[0])->first();
+            $divisi = Divisi::where('nama_divisi', $row['nama_divisi'])->first();
             $id_divisi = $divisi ? $divisi->id : null;
 
             // Normalisasi jenis kelamin
-            $jenis_kelamin = strtoupper(trim($row[4]));
+            $jenis_kelamin = strtoupper(trim($row['jenis_kelamin']));
             if (!in_array($jenis_kelamin, ['LAKI-LAKI', 'PEREMPUAN'])) {
                 $jenis_kelamin = 'LAKI-LAKI'; // Default jika format salah
             }
 
+            // **Konversi tanggal dari format Excel ke format MySQL**
+            $tanggal_lahir = $row['tanggal_lahir'];
+            if (is_numeric($tanggal_lahir)) {
+                $tanggal_lahir = Carbon::createFromDate(1900, 1, 1)->addDays($tanggal_lahir - 2)->format('Y-m-d');
+            } else {
+                // Jika bukan angka, coba parsing sebagai string biasa
+                try {
+                    $tanggal_lahir = Carbon::parse($tanggal_lahir)->format('Y-m-d');
+                } catch (\Exception $e) {
+                    $tanggal_lahir = null; // Atur null jika tidak bisa diproses
+                }
+            }
+
             // Upsert data karyawan berdasarkan email
             Karyawan::updateOrCreate(
-                ['email' => $row[2]], // Kunci unik
+                ['email' => $row['email']], // Kunci unik
                 [
                     'id_divisi' => $id_divisi,
-                    'nama_lengkap' => $row[1],
-                    'username' => $row[3],
+                    'nama_lengkap' => $row['nama_lengkap'],
+                    'username' => $row['username'],
                     'jenis_kelamin' => $jenis_kelamin,
-                    'nomor_telepon' => $row[5],
-                    'alamat' => $row[6],
-                    'tanggal_lahir' => $row[7],
-                    'password' => bcrypt($row[8]),
+                    'nomor_telepon' => $row['nomor_telepon'],
+                    'alamat' => $row['alamat'],
+                    'tanggal_lahir' => $tanggal_lahir,
+                    'password' => bcrypt($row['password']),
                 ]
             );
         }
+
     }
 
     public function batchSize(): int

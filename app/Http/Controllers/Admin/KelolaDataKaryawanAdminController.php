@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Imports\KaryawanImport;
 use Illuminate\Support\Facades\Response;
 use Maatwebsite\Excel\Facades\Excel;
-
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class KelolaDataKaryawanAdminController extends Controller
 {
@@ -212,7 +212,6 @@ class KelolaDataKaryawanAdminController extends Controller
             'message' => 'Karyawan berhasil dihapus.'
         ], 200);
     }
-
     public function importDataKaryawan(Request $request)
     {
         // Validasi file yang di-upload
@@ -229,6 +228,14 @@ class KelolaDataKaryawanAdminController extends Controller
         }
 
         try {
+            // Check if file is empty
+            if ($request->file('file')->getSize() === 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'File Excel kosong. Silakan pilih file yang berisi data.'
+                ], 400);
+            }
+
             // Proses import data karyawan
             Excel::import(new KaryawanImport, $request->file('file'));
 
@@ -236,17 +243,18 @@ class KelolaDataKaryawanAdminController extends Controller
                 'status' => 'success',
                 'message' => 'Data karyawan berhasil diimport.'
             ], 200);
-        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-            // Tangani error validasi Excel (misalnya format kolom yang tidak sesuai)
+        } catch (ValidationException $e) {
+            // Tangani error validasi Excel
             return response()->json([
                 'status' => 'error',
-                'message' => 'Ada kesalahan saat import data: .' . $e->getMessage()
-            ], 400);
+                'message' => $e->getMessage(),
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             // Tangani kesalahan umum
             return response()->json([
                 'status' => 'error',
-                'message' => 'Terjadi kesalahan pada sisi server: .' . $e->getMessage()
+                'message' => 'Terjadi kesalahan pada sisi server: ' . $e->getMessage()
             ], 500);
         }
     }

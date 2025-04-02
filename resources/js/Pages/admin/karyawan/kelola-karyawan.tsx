@@ -50,20 +50,35 @@ import type { Karyawan, Divisi } from "@/models/Models"
 import Swal from "sweetalert2"
 
 // Schema validasi untuk form karyawan
-const karyawanFormSchema = z.object({
-  id: z.number().nullable(),
-  nama_lengkap: z.string().min(3, "Nama lengkap minimal 3 karakter"),
-  id_divisi: z.number().nullable(),
-  email: z.string().email("Format email tidak valid"),
-  alamat: z.string().min(5, "Alamat minimal 5 karakter"),
-  jenis_kelamin: z.enum(["LAKI-LAKI", "PEREMPUAN"], {
-    errorMap: () => ({ message: "Jenis kelamin harus 'LAKI-LAKI' atau 'PEREMPUAN'" }),
-  }),
-  nomor_telepon: z.string().min(10, "Nomor telepon tidak valid"),
-  username: z.string().min(3, "Username minimal 3 karakter"),
-  tanggal_lahir: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal lahir harus YYYY-MM-DD"),
-  password: z.string().min(8, "Password minimal 8 karakter").optional().or(z.literal("")),
-})
+const karyawanFormSchema = z
+  .object({
+    id: z.number().nullable(),
+    nama_lengkap: z.string().min(3, "Nama lengkap minimal 3 karakter"),
+    id_divisi: z.number().nullable(),
+    email: z.string().email("Format email tidak valid"),
+    alamat: z.string().min(5, "Alamat minimal 5 karakter"),
+    jenis_kelamin: z.enum(["LAKI-LAKI", "PEREMPUAN"], {
+      errorMap: () => ({ message: "Jenis kelamin harus 'LAKI-LAKI' atau 'PEREMPUAN'" }),
+    }),
+    nomor_telepon: z.string().min(10, "Nomor telepon tidak valid"),
+    username: z.string().min(3, "Username minimal 3 karakter"),
+    tanggal_lahir: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal lahir harus YYYY-MM-DD"),
+    password: z.string().min(8, "Password minimal 8 karakter").optional(),
+    password_confirmation: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      // Only validate if password is provided (for editing)
+      if (data.password && data.password.length > 0) {
+        return data.password === data.password_confirmation
+      }
+      return true
+    },
+    {
+      message: "Password dan konfirmasi password tidak cocok",
+      path: ["password_confirmation"],
+    },
+  )
 
 type FormValues = z.infer<typeof karyawanFormSchema>
 
@@ -108,6 +123,7 @@ export default function KelolaKaryawan() {
       username: "",
       tanggal_lahir: "",
       password: "",
+      password_confirmation: "",
     },
   })
 
@@ -176,7 +192,7 @@ export default function KelolaKaryawan() {
   }
 
   const navigateToTambahKaryawan = () => {
-    window.location.href = "/kelola-data-karyawan/tambah"
+    window.location.href = "/karyawan/tambah"
   }
 
   // Update the resetForm function to include password
@@ -192,6 +208,7 @@ export default function KelolaKaryawan() {
       username: "",
       tanggal_lahir: "",
       password: "",
+      password_confirmation: "",
     })
     setIsEdit(false)
     setCurrentId(null)
@@ -213,6 +230,7 @@ export default function KelolaKaryawan() {
         username: karyawanToEdit.username,
         tanggal_lahir: karyawanToEdit.tanggal_lahir,
         password: "", // Reset password field when editing
+        password_confirmation: "", // Reset password confirmation field when editing
       })
       setIsEdit(true)
       setCurrentId(id)
@@ -231,37 +249,10 @@ export default function KelolaKaryawan() {
   }
 
   const handleHapusKaryawan = (id: number | null) => {
-    if(id !== null) {
-        Swal.fire({
-            title: "Apakah Anda yakin?",
-            text: "Karyawan yang dihapus tidak dapat dikembalikan!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Ya, hapus!",
-            cancelButtonText: "Batal"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                axios.delete(`/api/admin/deleteKaryawan`, { data: { id_karyawan: id } })
-                    .then((response) => {
-                        getAllDataKaryawan()
-                        Swal.fire(
-                            "Terhapus!",
-                            "Karyawan telah berhasil dihapus.",
-                            "success"
-                        );
-                    })
-                    .catch((error) => {
-                        Swal.fire(
-                            "Gagal!",
-                            error.response?.data?.message || "Terjadi kesalahan saat menghapus karyawan.",
-                            "error"
-                        );
-                    });
-            }
-        });
-    }
+    if (id === null) return
+
+    setCurrentId(id)
+    setDeleteDialogOpen(true)
   }
 
   const konfirmasiHapusKaryawan = async () => {
@@ -293,6 +284,7 @@ export default function KelolaKaryawan() {
     }
   }
 
+  // Update the handleImportData function to properly handle the file upload and check for empty files
   const handleImportData = () => {
     if (!selectedFile) {
       setImportStatus({
@@ -303,149 +295,148 @@ export default function KelolaKaryawan() {
       return
     }
 
+    // Check if file is empty (this is a basic check, the server will do more thorough validation)
+    if (selectedFile.size === 0) {
+      setImportStatus({
+        show: true,
+        success: false,
+        message: "File Excel kosong. Silakan pilih file yang berisi data.",
+      })
+      return
+    }
+
     // Create FormData for file upload
     const formData = new FormData()
     formData.append("file", selectedFile)
 
-    // Implementasi API call untuk import data
+    // Set loading state
     setImportStatus({
       show: true,
       success: true,
       message: "Sedang mengimpor data...",
     })
 
+    // Close the dialog and show confirmation
     setImportDialogOpen(false)
 
     Swal.fire({
-        title: "Apakah Anda yakin?",
-        text: "Apakah Anda yakin data karyawan sudah benar?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "Ya, Simpan!",
-        cancelButtonText: "Batal"
+      title: "Apakah Anda yakin?",
+      text: "Apakah Anda yakin data karyawan sudah benar?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Ya, Simpan!",
+      cancelButtonText: "Batal",
     }).then((result) => {
-        if (result.isConfirmed) {
-            axios.post(`/api/admin/importDataKaryawan`, formData)
-                .then((response) => {
-                    if(response.data.status == 'success') {
-                        getAllDataKaryawan()
-                        Swal.fire(
-                            "Berhasil!",
-                            "Data karyawan telah berhasil diimport.",
-                            "success"
-                        );
-                        setImportStatus({
-                            show: false,
-                            success: true,
-                            message: "Berhasil Import Data"
-                        })
-                    } else {
-                        Swal.fire(
-                            "Gagal!",
-                            response?.data?.message || "Terjadi kesalahan saat import data karyawan.",
-                            "error"
-                        );
-                        setImportStatus({
-                            show: false,
-                            success: false,
-                            message: "Gagal Import Data"
-                        })
-                    }
-                })
-                .catch((error) => {
-                    Swal.fire(
-                        "Gagal!",
-                        error.response?.data?.message || "Terjadi kesalahan saat import data karyawan.",
-                        "error"
-                    );
-                    setImportStatus({
-                        show: false,
-                        success: false,
-                        message: "Gagal Import Data"
-                    })
-                })
-        } else {
-            setImportDialogOpen(true)
-        }
-    });
+      if (result.isConfirmed) {
+        // Show loading indicator
+        Swal.fire({
+          title: "Mengimpor data...",
+          text: "Mohon tunggu sebentar",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading()
+          },
+        })
+
+        axios
+          .post(`/api/admin/importDataKaryawan`, formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          })
+          .then((response) => {
+            if (response.data.status === "success") {
+              getAllDataKaryawan()
+              Swal.fire("Berhasil!", "Data karyawan telah berhasil diimpor.", "success")
+              setImportStatus({
+                show: false,
+                success: true,
+                message: "Berhasil Import Data",
+              })
+              setSelectedFile(null)
+            } else {
+              Swal.fire("Gagal!", response?.data?.message || "Terjadi kesalahan saat import data karyawan.", "error")
+              setImportStatus({
+                show: false,
+                success: false,
+                message: "Gagal Import Data",
+              })
+            }
+          })
+          .catch((error) => {
+            console.error("Import error:", error)
+            Swal.fire(
+              "Gagal!",
+              error.response?.data?.message || "Terjadi kesalahan saat import data karyawan.",
+              "error",
+            )
+            setImportStatus({
+              show: false,
+              success: false,
+              message: "Gagal Import Data",
+            })
+          })
+      } else {
+        setImportDialogOpen(true)
+      }
+    })
   }
 
   const handleDownloadTemplate = () => {
     // Implementasi download template
-    window.open("/api/admin/downloadTemplate", "_blank")
+    window.open("/api/admin/downloadTemplateKaryawan", "_blank")
   }
 
   const onSubmit = async (data: FormValues) => {
     try {
-        setError(null);
+      setError(null)
 
-        if (isEdit && currentId) {
-            // SweetAlert konfirmasi sebelum update
-            setDialogOpen(false)
+      // Remove password_confirmation before sending to API
+      const { password_confirmation, ...submitData } = data
 
-            const result = await Swal.fire({
-                title: "Apakah Anda yakin?",
-                text: "Apakah Anda yakin untuk memperbarui data karyawan?!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#d33",
-                cancelButtonColor: "#3085d6",
-                confirmButtonText: "Ya, Perbarui!",
-                cancelButtonText: "Batal"
-            });
+      if (isEdit && currentId) {
+        // Update existing employee
+        const response = await axios.put(`/api/admin/updateKaryawan/${currentId}`, submitData)
 
-            if (result.isConfirmed) {
-                // Kirim permintaan update setelah konfirmasi
-                const response = await axios.put(`/api/admin/updateDataKaryawan/${currentId}`, data);
-
-                if (response.data.status === "success") {
-                    // Perbarui data karyawan
-                    getAllDataKaryawan();
-
-                    // Tampilkan notifikasi sukses
-                    Swal.fire("Berhasil!", "Data karyawan berhasil diperbarui.", "success");
-                    setDialogOpen(false);
-
-                    // Reset form setelah berhasil
-                    resetForm();
-                }
-            } else {
-                setDialogOpen(true)
-            }
-        } else {
-            // Menambahkan karyawan baru
-            const response = await axios.post("/api/admin/tambahKaryawan", data);
-
-            if (response.data.status === "success") {
-                getAllDataKaryawan();
-                resetForm();
-                setDialogOpen(false);
-
-                Swal.fire("Berhasil!", "Karyawan baru berhasil ditambahkan.", "success");
-            }
+        if (response.data.status === "success") {
+          // Refresh data after successful update
+          getAllDataKaryawan()
+          resetForm()
+          setDialogOpen(false)
         }
+      } else {
+        // Add new employee
+        const response = await axios.post("/api/admin/tambahKaryawan", submitData)
+
+        if (response.data.status === "success") {
+          // Refresh data after successful addition
+          getAllDataKaryawan()
+          resetForm()
+          setDialogOpen(false)
+        }
+      }
     } catch (err: any) {
-        console.error("Error saving employee:", err);
+      console.error("Error saving employee:", err)
 
-        // Tangani error validasi dari API
-        if (err.response?.status === 422 && err.response?.data?.errors) {
-            const apiErrors = err.response.data.errors;
+      // Handle validation errors from the API
+      if (err.response?.status === 422 && err.response?.data?.errors) {
+        // Set form errors based on API response
+        const apiErrors = err.response.data.errors
 
-            Object.keys(apiErrors).forEach((key) => {
-                form.setError(key as any, {
-                    type: "server",
-                    message: Array.isArray(apiErrors[key]) ? apiErrors[key][0] : apiErrors[key],
-                });
-            });
-        } else {
-            setError(err.response?.data?.message || "Terjadi kesalahan saat menyimpan data karyawan.");
-            Swal.fire("Gagal!", err.response?.data?.message || "Terjadi kesalahan saat menyimpan data karyawan.", "error");
-        }
+        Object.keys(apiErrors).forEach((key) => {
+          form.setError(key as any, {
+            type: "server",
+            message: Array.isArray(apiErrors[key]) ? apiErrors[key][0] : apiErrors[key],
+          })
+        })
+      } else {
+        // Set general error message
+        setError(err.response?.data?.message || "Terjadi kesalahan saat menyimpan data karyawan.")
+      }
     }
-};
-
+  }
 
   // Pagination handlers
   const handlePageChange = (page: number) => {
@@ -844,7 +835,7 @@ export default function KelolaKaryawan() {
                     control={form.control}
                     name="password"
                     render={({ field }) => (
-                      <FormItem className="md:col-span-2">
+                      <FormItem className="md:col-span-1">
                         <FormLabel>{isEdit ? "Password (Kosongkan jika tidak ingin mengubah)" : "Password"}</FormLabel>
                         <FormControl>
                           <Input
@@ -852,6 +843,20 @@ export default function KelolaKaryawan() {
                             placeholder={isEdit ? "Kosongkan jika tidak ingin mengubah password" : "Masukkan password"}
                             {...field}
                           />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="password_confirmation"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-1">
+                        <FormLabel>Konfirmasi Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Konfirmasi password" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
