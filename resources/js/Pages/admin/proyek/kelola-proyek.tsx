@@ -302,7 +302,7 @@ export default function KelolaProyek() {
 
         if (result.isConfirmed) {
           // Kirim permintaan update setelah konfirmasi
-          const response = await axios.put(`/api/admin/updateProyek/${currentId}`, submitData)
+          const response = await axios.put(`/api/admin/updateDataProyek/${currentId}`, submitData)
 
           if (response.data.status === "success") {
             // Perbarui data proyek

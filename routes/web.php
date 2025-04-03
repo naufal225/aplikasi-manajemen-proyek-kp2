@@ -49,6 +49,7 @@ Route::middleware('auth')->prefix('/api')->group(function() {
         Route::get('/getAllDataProyek', [KelolaDataProyekAdminController::class, 'getAllDataProyek']);
 
         Route::post('/storeDataProyek', [KelolaDataProyekAdminController::class, 'storeDataProyek']);
+        Route::put('/updateDataProyek/{id_proyek}', [KelolaDataProyekAdminController::class, 'updateDataProyek']);
     });
 
 });

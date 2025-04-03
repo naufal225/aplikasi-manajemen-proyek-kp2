@@ -110,7 +110,7 @@ class KelolaDataDivisiAdminController extends Controller
             'deskripsi.string' => 'Deskripsi harus berupa teks.',
             'id_manajer.exists' => 'Manajer tidak ditemukan dalam data karyawan.'
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
@@ -118,34 +118,34 @@ class KelolaDataDivisiAdminController extends Controller
                 'errors' => $validator->errors()
             ], 400);
         }
-    
+
         // Cari divisi berdasarkan ID
         $divisi = Divisi::find($request->id_divisi);
-    
+
         if (!$divisi) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Divisi tidak ditemukan.',
             ], 404);
         }
-    
+
         // Cek apakah id_manajer ada dalam request
         if ($request->filled('id_manajer')) {
             $manajer = Karyawan::find($request->id_manajer);
-    
+
             if ($manajer && !$manajer->id_divisi) {
                 // Jika karyawan belum memiliki divisi, masukkan ke divisi ini
                 $manajer->update(['id_divisi' => $request->id_divisi]);
             }
         }
-    
+
         // Perbarui data divisi
         $divisi->update([
             'nama_divisi' => $request->nama_divisi,
             'deskripsi' => $request->deskripsi ?? null,
             'id_manajer' => $request->id_manajer
         ]);
-    
+
         return response()->json([
             'status' => 'success',
             'message' => 'Divisi berhasil diperbarui.',
@@ -157,7 +157,7 @@ class KelolaDataDivisiAdminController extends Controller
         $validator = Validator::make($request->all(), [
             'id_divisi' => 'required|exists:divisi,id'
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
@@ -165,17 +165,17 @@ class KelolaDataDivisiAdminController extends Controller
                 'errors' => $validator->errors()
             ], 400);
         }
-    
+
         // Ambil data divisi
         $divisi = Divisi::find($request->id_divisi);
-    
+
         if (!$divisi) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Divisi tidak ditemukan.'
             ], 404);
         }
-    
+
         // Cek apakah divisi masih memiliki karyawan atau proyek
         if ($divisi->karyawan()->count() > 0 || $divisi->proyek()->count() > 0) {
             return response()->json([
@@ -183,15 +183,15 @@ class KelolaDataDivisiAdminController extends Controller
                 'message' => 'Divisi tidak bisa dihapus karena masih memiliki karyawan atau proyek yang terhubung.'
             ], 400);
         }
-    
+
         // Hapus divisi
         $divisi->delete();
-    
+
         return response()->json([
             'status' => 'success',
             'message' => 'Divisi berhasil dihapus.'
         ], 200);
     }
-    
+
 
 }
