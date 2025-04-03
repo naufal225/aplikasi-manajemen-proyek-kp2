@@ -37,10 +37,6 @@ export function AdminHeader() {
       <div className="flex flex-1 items-center justify-between">
         <div className="font-medium">{getPageTitle()}</div>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="relative">
-            <BellRing className="h-5 w-5" />
-            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">

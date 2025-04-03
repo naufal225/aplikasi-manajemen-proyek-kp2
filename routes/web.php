@@ -4,9 +4,11 @@ use App\Http\Controllers\Admin\DashboardAdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\KelolaDataDivisiAdminController;
 use App\Http\Controllers\Admin\KelolaDataKaryawanAdminController;
+use App\Http\Controllers\Admin\KelolaDataProyekAdminController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use PhpOffice\PhpSpreadsheet\Worksheet\RowIterator;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -41,7 +43,12 @@ Route::middleware('auth')->prefix('/api')->group(function() {
         Route::delete('/deleteKaryawan', [KelolaDataKaryawanAdminController::class, 'deleteKaryawan']);
 
         Route::post('/importDataKaryawan', [KelolaDataKaryawanAdminController::class, 'importDataKaryawan']);
+
         Route::get('/downloadTemplate', [KelolaDataKaryawanAdminController::class, 'downloadTemplate']);
+
+        Route::get('/getAllDataProyek', [KelolaDataProyekAdminController::class, 'getAllDataProyek']);
+
+        Route::post('/storeDataProyek', [KelolaDataProyekAdminController::class, 'storeDataProyek']);
     });
 
 });
@@ -71,6 +78,16 @@ Route::middleware(['auth', 'web'])->group(function() {
 
         Route::get('/tambah', function() {
             return Inertia::render('admin/karyawan/tambah/tambah-karyawan');
+        });
+    });
+
+    Route::prefix('/kelola-data-proyek')->group(function() {
+        Route::get('/', function() {
+            return Inertia::render('admin/proyek/kelola-proyek');
+        });
+
+        Route::get('/tambah', function() {
+            return Inertia::render('admin/proyek/tambah/tambah-proyek');
         });
     });
 
