@@ -128,5 +128,37 @@ class KelolaDataProyekAdminController extends Controller
         ], 200);
     }
 
+    public function deleteDataProyek(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'id_proyek' => 'required|exists:proyek,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validasi gagal. Silakan periksa kembali input Anda.',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        // Ambil data karyawan
+        $proyek = Proyek::find($request->id_proyek);
+
+        if (!$proyek) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Proyek tidak ditemukan.'
+            ], 404);
+        }
+
+        // Hapus proyek
+        $proyek->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Proyek berhasil dihapus.'
+        ], 200);
+    }
+
 
 }

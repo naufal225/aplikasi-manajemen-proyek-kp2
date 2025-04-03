@@ -244,7 +244,7 @@ export default function KelolaProyek() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`/api/admin/deleteProyek`, { data: { id_proyek: id } })
+          .delete(`/api/admin/deleteDataProyek`, { data: { id_proyek: id } })
           .then((response) => {
             getAllDataProyek()
             Swal.fire("Terhapus!", "Proyek telah berhasil dihapus.", "success")
