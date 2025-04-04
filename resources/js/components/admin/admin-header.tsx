@@ -1,5 +1,7 @@
 "use client"
 
+import { use, useEffect, useState } from "react"
+import axios from "axios"
 import { BellRing } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -14,21 +16,43 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export function AdminHeader() {
+  const [user, setUser] = useState<{ nama_lengkap: string, email: string } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    axios.get("/api/admin/getUserLogedIn")
+      .then((response) => {
+        if(response.data.status == 'success') {
+            setUser(response.data.data)
+            setLoading(false)
+        }
+      })
+      .catch((error) => {
+        setError("Gagal mengambil data pengguna")
+        setLoading(false)
+      })
+  }, [])
+
   const pathname = document.location.href;
 
   // Function to get the page title based on the current path
   const getPageTitle = () => {
-    if (pathname?.startsWith("/dashboard")) return "Dashboard"
-    if (pathname?.startsWith("/divisions")) return "Manajemen Divisi"
-    if (pathname?.startsWith("/employees")) return "Manajemen Karyawan"
-    if (pathname?.startsWith("/projects")) return "Manajemen Proyek"
-    if (pathname?.startsWith("/profile")) return "Profil Pengguna"
     return "Manajemen Proyek"
   }
 
   const handleLogout = () => {
-    // In a real app, you would implement logout logic here
     alert("Logout functionality would be implemented here")
+  }
+
+  const getInitials = (name: string | null | undefined) => {
+    if(name === null || name === undefined) {
+        return 'AB'
+    }
+    return name
+      .split(" ") // Pisahkan berdasarkan spasi
+      .map((word) => word.charAt(0).toUpperCase()) // Ambil huruf pertama setiap kata
+      .join("") // Gabungkan huruf-huruf tersebut
   }
 
   return (
@@ -41,26 +65,35 @@ export function AdminHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback>A</AvatarFallback>
+                  <AvatarFallback>
+                    {loading ? "..." :  getInitials(user?.nama_lengkap) || "AB"}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Admin</p>
-                  <p className="text-xs leading-none text-muted-foreground">admin@manajemen-proyek.com</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <a href="/profile">
-                <DropdownMenuItem>Profil</DropdownMenuItem>
-              </a>
-              <DropdownMenuItem>Pengaturan</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
-                Keluar
-              </DropdownMenuItem>
+              {loading ? (
+                <DropdownMenuLabel className="text-center">Loading...</DropdownMenuLabel>
+              ) : error ? (
+                <DropdownMenuLabel className="text-red-500">{error}</DropdownMenuLabel>
+              ) : (
+                <>
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user?.nama_lengkap ? user.nama_lengkap : "Amir Budiono"}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <a href="/profil">
+                    <DropdownMenuItem>Profil</DropdownMenuItem>
+                  </a>
+                  {/* <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
+                    Keluar
+                  </DropdownMenuItem> */}
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -68,4 +101,3 @@ export function AdminHeader() {
     </header>
   )
 }
-

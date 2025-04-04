@@ -99,4 +99,23 @@ class DashboardAdminController extends Controller
             'data' => $topKaryawan
         ]);
     }
+
+    public function getUserLogedIn() {
+        $user = Auth::user();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+            'id'            => $user->id,
+            'nama_lengkap'  => $user->nama_lengkap,
+            'username'      => $user->username,
+            'email'         => $user->email,
+            'tipe_admin'    => $user->tipe_admin,
+            'jenis_kelamin' => $user->jenis_kelamin,
+            'nomor_telepon' => $user->nomor_telepon,
+            'alamat'        => $user->alamat,
+            'tanggal_lahir' => Carbon::parse($user->tanggal_lahir)->format('Y-m-d'),
+            'foto_profil'   => $user->foto_profil ?? null,]
+        ]);
+    }
 }

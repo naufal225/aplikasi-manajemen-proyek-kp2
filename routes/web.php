@@ -18,6 +18,8 @@ Route::middleware('auth')->prefix('/api')->group(function() {
     Route::post('/sendReview', [KelolaDataProyekAdminController::class, 'sendReview']);
 
     Route::prefix('/admin')->group(function() {
+        Route::get('/getUserLogedIn', [DashboardAdminController::class, 'getUserLogedIn']);
+
         Route::get('/getUserNamaLengkap', [DashboardAdminController::class, 'getUserNamaLengkap']);
 
         Route::get('/getDashboardStats', [DashboardAdminController::class, 'getDashboardStats']);
@@ -115,6 +117,11 @@ Route::middleware(['auth', 'web'])->group(function() {
                 'id_proyek' => $id_proyek
             ]);
         });
+
+    });
+    
+    Route::get('/profil', function() {
+        return Inertia::render('admin/profil/profil');
     });
 
 

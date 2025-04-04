@@ -85,3 +85,16 @@ export interface Tugas {
     bukti_type?: string | null
     penanggung_jawab: Karyawan | null
   }
+
+export interface UserProfile {
+   id: number
+   nama_lengkap: string
+   username: string
+   email: string
+   tipe_admin: "admin" | "owner"
+   jenis_kelamin: "LAKI-LAKI" | "PEREMPUAN"
+   nomor_telepon: string
+   alamat: string
+   tanggal_lahir: string
+   foto_profil?: string | null
+ }
