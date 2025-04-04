@@ -27,11 +27,11 @@ export interface TopKaryawan {
 export interface Divisi {
     id: number,
     nama_divisi: string,
-    jumlah_karyawan: number,
-    nama_manajer: string | null,
-    jumlah_proyek: number,
-    deskripsi: string | null,
-    id_manajer: number | null
+    jumlah_karyawan?: number | null,
+    nama_manajer?: string | null,
+    jumlah_proyek?: number,
+    deskripsi?: string | null,
+    id_manajer?: number | null
 }
 
 export interface KaryawanForDivisi {
@@ -44,10 +44,44 @@ export interface Karyawan {
     id: number | null,
     nama_lengkap: string,
     divisi: Divisi,
-    email: string,
-    alamat: string,
-    jenis_kelamin: string,
-    nomor_telepon: string,
-    username: string,
-    tanggal_lahir: string
+    email?: string,
+    alamat?: string,
+    jenis_kelamin?: string,
+    nomor_telepon?: string,
+    username?: string,
+    tanggal_lahir?: string
 }
+
+export interface Proyek {
+  id: number
+  nama_proyek: string
+  deskripsi_proyek: string | null
+  id_divisi: number
+  divisi?: {
+    id: number
+    nama_divisi: string
+  } | null
+  status: "pending" | "in-progress" | "waiting_for_review" | "done"
+  progress: number
+  tanggal_mulai: string
+  tenggat_waktu: string
+}
+
+export interface PersetujuanForm {
+  catatan: string
+  hasil_review: "approved" | "rejected" | ""
+}
+
+export interface Tugas {
+    id: number
+    id_proyek: number
+    nama_tugas: string
+    deskripsi: string | null
+    status: "pending" | "in-progress" | "done"
+    progress: number
+    tanggal_mulai: string
+    tenggat_waktu: string
+    bukti_pengerjaan?: string | null
+    bukti_type?: string | null
+    penanggung_jawab: Karyawan | null
+  }

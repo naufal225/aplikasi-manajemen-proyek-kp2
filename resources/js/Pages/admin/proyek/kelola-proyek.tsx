@@ -1,7 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Edit, Plus, Search, Trash2, Clock, AlertCircle, MoreVertical, Eye } from "lucide-react"
+import {
+  Edit,
+  Plus,
+  Search,
+  Trash2,
+  Clock,
+  AlertCircle,
+  MoreVertical,
+  Eye,
+  CheckSquare,
+  ListChecks,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -39,6 +50,7 @@ import {
 import { AdminLayout } from "@/layouts/admin-layout"
 import axios from "axios"
 import Swal from "sweetalert2"
+import { router } from "@inertiajs/react"
 
 // Schema validasi untuk form proyek
 const proyekFormSchema = z
@@ -46,7 +58,7 @@ const proyekFormSchema = z
     nama_proyek: z.string().min(2, {
       message: "Nama proyek harus minimal 2 karakter.",
     }),
-    deskripsi_proyek: z.string().optional(),
+    deskripsi: z.string().optional(),
     id_divisi: z.number({
       required_error: "Silakan pilih divisi.",
     }),
@@ -71,7 +83,7 @@ type FormValues = z.infer<typeof proyekFormSchema>
 interface Proyek {
   id: number
   nama_proyek: string
-  deskripsi_proyek: string | null
+  deskripsi: string | null
   id_divisi: number
   divisi?: {
     id: number
@@ -90,6 +102,7 @@ interface Divisi {
 }
 
 export default function KelolaProyek() {
+
   // State untuk data proyek dan divisi
   const [proyek, setProyek] = useState<Proyek[]>([])
   const [divisi, setDivisi] = useState<Divisi[]>([])
@@ -117,7 +130,7 @@ export default function KelolaProyek() {
     resolver: zodResolver(proyekFormSchema),
     defaultValues: {
       nama_proyek: "",
-      deskripsi_proyek: "",
+      deskripsi: "",
       id_divisi: undefined as unknown as number,
       status: "pending",
       tanggal_mulai: new Date(),
@@ -158,6 +171,8 @@ export default function KelolaProyek() {
 
   // Fetch data when component mounts
   useEffect(() => {
+  console.log("ID yang diterima:", id);
+
     getAllDataDivisi()
     getAllDataProyek()
   }, [])
@@ -168,7 +183,7 @@ export default function KelolaProyek() {
     const filtered = proyek.filter(
       (item) =>
         (item.nama_proyek.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (item.deskripsi_proyek && item.deskripsi_proyek.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (item.deskripsi && item.deskripsi.toLowerCase().includes(searchTerm.toLowerCase())) ||
           (item.divisi?.nama_divisi || "").toLowerCase().includes(searchTerm.toLowerCase())) &&
         (activeTab === "all" || item.status === activeTab),
     )
@@ -190,13 +205,21 @@ export default function KelolaProyek() {
   }
 
   const navigateToTambahProyek = () => {
-    window.location.href = "/kelola-data-proyek/tambah"
+    router.visit("/kelola-data-proyek/tambah")
+  }
+
+  const navigateToKelolaPersetujuan = (id: number) => {
+    router.visit(`/kelola-data-proyek/persetujuan/${id}`)
+  }
+
+  const navigateToDetailTugas = (id: number) => {
+    router.visit(`/kelola-data-proyek/detail-tugas/${id}`)
   }
 
   const resetForm = () => {
     form.reset({
       nama_proyek: "",
-      deskripsi_proyek: "",
+      deskripsi: "",
       id_divisi: undefined as unknown as number,
       status: "pending",
       tanggal_mulai: new Date(),
@@ -211,7 +234,7 @@ export default function KelolaProyek() {
     if (proyekToEdit) {
       form.reset({
         nama_proyek: proyekToEdit.nama_proyek,
-        deskripsi_proyek: proyekToEdit.deskripsi_proyek || "",
+        deskripsi: proyekToEdit.deskripsi || "",
         id_divisi: proyekToEdit.id_divisi,
         status: proyekToEdit.status,
         tanggal_mulai: new Date(proyekToEdit.tanggal_mulai),
@@ -522,6 +545,7 @@ export default function KelolaProyek() {
               <TabsTrigger value="all">Semua</TabsTrigger>
               <TabsTrigger value="pending">Pending</TabsTrigger>
               <TabsTrigger value="in-progress">In Progress</TabsTrigger>
+              <TabsTrigger value="waiting_for_review">Review</TabsTrigger>
               <TabsTrigger value="done">Selesai</TabsTrigger>
             </TabsList>
           </Tabs>
@@ -564,7 +588,7 @@ export default function KelolaProyek() {
                       <TableHead className="min-w-[200px]">Nama Proyek</TableHead>
                       <TableHead className="min-w-[150px]">Divisi</TableHead>
                       <TableHead className="min-w-[120px]">Status</TableHead>
-                      <TableHead className="min-w-[120px]">Keterlambatan</TableHead>
+                      <TableHead className="min-w-[120px]">Keterangan</TableHead>
                       <TableHead className="min-w-[150px]">Progress</TableHead>
                       <TableHead className="min-w-[120px]">Tanggal Mulai</TableHead>
                       <TableHead className="min-w-[120px]">Tanggal Selesai</TableHead>
@@ -591,7 +615,7 @@ export default function KelolaProyek() {
                           <TableCell>
                             <div>
                               <p className="font-medium">{item.nama_proyek}</p>
-                              <p className="text-sm text-muted-foreground line-clamp-1">{item.deskripsi_proyek}</p>
+                              <p className="text-sm text-muted-foreground line-clamp-1">{item.deskripsi}</p>
                             </div>
                           </TableCell>
                           <TableCell>{item.divisi?.nama_divisi || "Tidak ada divisi"}</TableCell>
@@ -621,6 +645,16 @@ export default function KelolaProyek() {
                                   <Eye className="mr-2 h-4 w-4" />
                                   <span>Detail</span>
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => navigateToDetailTugas(item.id)}>
+                                  <ListChecks className="mr-2 h-4 w-4" />
+                                  <span>Detail Tugas</span>
+                                </DropdownMenuItem>
+                                {item.status === "waiting_for_review" && (
+                                  <DropdownMenuItem onClick={() => navigateToKelolaPersetujuan(item.id)}>
+                                    <CheckSquare className="mr-2 h-4 w-4" />
+                                    <span>Kelola Persetujuan</span>
+                                  </DropdownMenuItem>
+                                )}
                                 <DropdownMenuItem onClick={() => handleEditProyek(item.id)}>
                                   <Edit className="mr-2 h-4 w-4" />
                                   <span>Edit</span>
@@ -713,7 +747,7 @@ export default function KelolaProyek() {
                 />
                 <FormField
                   control={form.control}
-                  name="deskripsi_proyek"
+                  name="deskripsi"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Deskripsi</FormLabel>
@@ -771,7 +805,6 @@ export default function KelolaProyek() {
                             <SelectItem value="done">Selesai</SelectItem>
                           </SelectContent>
                         </Select>
-
                         <FormMessage />
                       </FormItem>
                     )}
@@ -829,7 +862,7 @@ export default function KelolaProyek() {
                   <div>{selectedProyek.nama_proyek}</div>
 
                   <div className="font-medium">Deskripsi:</div>
-                  <div>{selectedProyek.deskripsi_proyek || "Tidak ada deskripsi"}</div>
+                  <div>{selectedProyek.deskripsi || "Tidak ada deskripsi"}</div>
 
                   <div className="font-medium">Divisi:</div>
                   <div>{selectedProyek.divisi?.nama_divisi || "Tidak ada divisi"}</div>

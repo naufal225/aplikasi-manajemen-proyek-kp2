@@ -303,6 +303,7 @@ function DashboardContent() {
                         if (project.status === "done") bgColor = "bg-green-500"
                         else if (project.status === "in-progress") bgColor = "bg-blue-500"
                         else if (project.status === "pending") bgColor = "bg-red-500"
+                        else if (project.status === "waiting_for_review") bgColor = "bg-purple-700"
                       }
 
                       const borderRadius = isProjectMonth
@@ -371,6 +372,10 @@ function DashboardContent() {
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-blue-500 rounded-sm mr-1"></div>
                   <span>Dalam Pengerjaan</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-purple-700 rounded-sm mr-1"></div>
+                  <span>Menunggu Review</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-red-500 rounded-sm mr-1"></div>

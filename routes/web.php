@@ -15,6 +15,8 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth')->prefix('/api')->group(function() {
+    Route::post('/sendReview', [KelolaDataProyekAdminController::class, 'sendReview']);
+
     Route::prefix('/admin')->group(function() {
         Route::get('/getUserNamaLengkap', [DashboardAdminController::class, 'getUserNamaLengkap']);
 
@@ -48,11 +50,17 @@ Route::middleware('auth')->prefix('/api')->group(function() {
 
         Route::get('/getAllDataProyek', [KelolaDataProyekAdminController::class, 'getAllDataProyek']);
 
+        Route::get('/getProyekById/{id_proyek}', [KelolaDataProyekAdminController::class, 'getProyekById']);
+
         Route::post('/storeDataProyek', [KelolaDataProyekAdminController::class, 'storeDataProyek']);
 
         Route::put('/updateDataProyek/{id_proyek}', [KelolaDataProyekAdminController::class, 'updateDataProyek']);
 
         Route::delete('/deleteDataProyek', [KelolaDataProyekAdminController::class, 'deleteDataProyek']);
+
+        Route::put('/giveReview', [KelolaDataProyekAdminController::class, 'giveReview']);
+
+        Route::get('/getTugasByIdProyek/{id_proyek}', [KelolaDataProyekAdminController::class, 'getTugasByIdProyek']);
     });
 
 });
@@ -92,6 +100,18 @@ Route::middleware(['auth', 'web'])->group(function() {
 
         Route::get('/tambah', function() {
             return Inertia::render('admin/proyek/tambah/tambah-proyek');
+        });
+
+        Route::get('/persetujuan/{id_proyek}', function($id_proyek) {
+            return Inertia::render('admin/proyek/persetujuan/persetujuan', [
+                'id' => $id_proyek
+            ]);
+        });
+
+        Route::get('/detail-tugas/{id_proyek}', function($id_proyek) {
+            return Inertia::render('admin/proyek/detail-tugas/detail-tugas', [
+                'id_proyek' => $id_proyek
+            ]);
         });
     });
 

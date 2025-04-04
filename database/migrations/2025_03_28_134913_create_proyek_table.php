@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('proyek', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_divisi')->constrained('divisi')->nullOnDelete();
+            $table->foreignId('id_divisi')->nullable()->constrained('divisi')->nullOnDelete();
             $table->string('nama_proyek');
             $table->text('deskripsi_proyek')->nullable();
             $table->date('tenggat_waktu');

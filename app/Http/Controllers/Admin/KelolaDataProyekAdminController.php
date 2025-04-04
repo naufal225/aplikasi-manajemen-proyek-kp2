@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Proyek;
+use App\Models\ReviewProyek;
+use App\Models\Tugas;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -159,6 +162,118 @@ class KelolaDataProyekAdminController extends Controller
             'message' => 'Proyek berhasil dihapus.'
         ], 200);
     }
+
+    public function getProyekById($id_proyek) {
+        // Ambil proyek berdasarkan ID dengan relasi divisi (hanya ambil ID & nama_divisi)
+        $proyek = Proyek::with(['divisi:id,nama_divisi'])
+            ->findOrFail($id_proyek); // Langsung pakai findOrFail untuk error otomatis
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $proyek
+        ]);
+    }
+
+    public function sendReview(Request $request, $id_proyek)
+    {
+        $proyek = Proyek::findOrFail($id_proyek);
+
+        // Cek apakah proyek sudah "waiting_for_review"
+        if ($proyek->status !== 'waiting_for_review') {
+            return response()->json(['message' => 'Proyek belum siap untuk direview.'], 400);
+        }
+
+        // Cek apakah sudah ada pengajuan sebelumnya
+        $existingReview = ReviewProyek::where('id_proyek', $id_proyek)->first();
+        if ($existingReview) {
+            return response()->json(['message' => 'Proyek sudah dalam proses review.'], 400);
+        }
+
+        // Buat pengajuan review baru
+        $review = ReviewProyek::create([
+            'id_proyek' => $id_proyek,
+            'id_admin' => null,  // Belum direview
+            'hasil_review' => null,
+            'catatan' => null,
+        ]);
+
+        return response()->json(['status' => 'success','message' => 'Pengajuan review berhasil dikirim.', 'review' => $review], 201);
+    }
+
+    public function giveReview(Request $request)
+    {
+        $request->validate([
+            'hasil_review' => 'required|in:approved,rejected',
+            'catatan' => 'nullable|string',
+            'id_proyek' => 'required|integer',
+        ]);
+
+        $review = ReviewProyek::where('id_proyek', $request->id_proyek)->first();
+
+        if(!$review) {
+            return response()->json(['message' => 'Proyek belum diajukan untuk review'], 400);
+        }
+
+        // Pastikan review belum dinilai
+        if ($review->hasil_review !== null) {
+            return response()->json(['message' => 'Review sudah diproses sebelumnya.'], 400);
+        }
+
+        // Simpan hasil review
+        $review->update([
+            'id_admin' => auth()->id(),
+            'hasil_review' => $request->hasil_review,
+            'catatan' => $request->catatan,
+        ]);
+
+        // Ubah status proyek berdasarkan hasil review
+        if ($request->hasil_review === 'approved') {
+            $review->proyek->update(['status' => 'done']);
+        } else {
+            $review->proyek->update(['status' => 'in-progress']); // Bisa dikembalikan ke in-progress jika ditolak
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Review berhasil dikirim.', 'review' => $review]);
+    }
+
+    public function getTugasByIdProyek($id_proyek) {
+        // Ambil semua tugas berdasarkan id_proyek
+        $tugas = Tugas::where('id_proyek', $id_proyek)
+            ->with([
+                'karyawan.divisi', // Ambil data karyawan dan divisinya
+                'fileBukti' // Ambil bukti pengerjaan tugas
+            ])
+            ->get();
+
+        // Format response sesuai kebutuhan
+        $response = $tugas->map(function ($tugas) {
+            return [
+                'id' => $tugas->id,
+                'id_proyek' => $tugas->id_proyek,
+                'nama_tugas' => $tugas->nama_tugas,
+                'deskripsi' => $tugas->deskripsi_tugas,
+                'status' => $tugas->status,
+                'tanggal_mulai' => Carbon::parse($tugas['created_at'])->format('Y-m-d') ?? null,
+                'tenggat_waktu' => $tugas->tenggat_waktu,
+                'bukti_pengerjaan' => $tugas->fileBukti->path_file ?? null,
+                'bukti_type' => $tugas->fileBukti->mime_type ?? null,
+                'penanggung_jawab' => $tugas->karyawan ? [
+                    'id' => $tugas->karyawan->id,
+                    'nama_lengkap' => $tugas->karyawan->nama,
+                    'divisi' => [
+                        'id' => $tugas->karyawan->divisi->id,
+                        'nama_divisi' => $tugas->karyawan->divisi->nama_divisi,
+                    ],
+                ] : null,
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $response
+        ]);
+    }
+
 
 
 }
