@@ -14,20 +14,6 @@ import { AdminLayout } from "@/layouts/admin-layout"
 
 import axios from "axios"
 
-const mockActivities = [
-  { id: 1, user: "Ahmad Rizki", action: "Membuat project baru: E-Commerce App", time: "08:30", date: "Hari ini" },
-  {
-    id: 2,
-    user: "Siti Aminah",
-    action: "Mengupload desain UI untuk halaman produk",
-    time: "09:15",
-    date: "Hari ini",
-  },
-  { id: 3, user: "Budi Santoso", action: "Menyelesaikan fitur login dan register", time: "11:45", date: "Hari ini" },
-  { id: 4, user: "Dewi Lestari", action: "Mengimplementasi API pembayaran", time: "14:20", date: "Kemarin" },
-  { id: 5, user: "Eko Prasetyo", action: "Melakukan testing pada fitur checkout", time: "16:05", date: "Kemarin" },
-]
-
 // Month names for the Gantt chart
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 

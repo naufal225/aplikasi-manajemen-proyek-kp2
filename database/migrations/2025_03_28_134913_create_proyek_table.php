@@ -20,6 +20,7 @@ return new class extends Migration
             $table->float('progress')->default(0);
             $table->enum('status', ['pending','in-progress','waiting_for_review', 'done'])->default('pending');
             $table->date('tanggal_mulai');
+            $table->date('tanggal_selesai')->nullable();
             $table->timestamps();
         });
     }

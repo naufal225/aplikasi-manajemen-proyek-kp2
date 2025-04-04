@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\ProyekExport;
 use App\Http\Controllers\Controller;
 use App\Models\Proyek;
 use App\Models\ReviewProyek;
 use App\Models\Tugas;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class KelolaDataProyekAdminController extends Controller
 {
@@ -274,6 +277,13 @@ class KelolaDataProyekAdminController extends Controller
         ]);
     }
 
+    public function exportDataProyek(Request $request)
+    {
+        $tanggal_awal = $request->tanggal_awal;
+        $tanggal_akhir = $request->tanggal_akhir;
+
+        return Excel::download(new ProyekExport($tanggal_awal, $tanggal_akhir), 'Laporan_Proyek.xlsx');
+    }
 
 
 }

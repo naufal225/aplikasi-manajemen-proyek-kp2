@@ -14,4 +14,8 @@ class Proyek extends Model
     public function divisi() {
         return $this->belongsTo(Divisi::class, 'id_divisi');
     }
+
+    public function tugas() {
+        return $this->hasMany(Tugas::class, 'id_proyek');
+    }
 }

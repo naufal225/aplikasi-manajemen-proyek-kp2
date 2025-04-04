@@ -12,6 +12,8 @@ import {
   Eye,
   CheckSquare,
   ListChecks,
+  Download,
+  Calendar,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
@@ -50,7 +52,9 @@ import {
 import { AdminLayout } from "@/layouts/admin-layout"
 import axios from "axios"
 import Swal from "sweetalert2"
-import { router } from "@inertiajs/react"
+import {router} from "@inertiajs/react"
+import { format as formatDate } from "date-fns"
+import { Label } from "@/components/ui/label"
 
 // Schema validasi untuk form proyek
 const proyekFormSchema = z
@@ -125,6 +129,12 @@ export default function KelolaProyek() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
+  const [exportDateRange, setExportDateRange] = useState({
+    startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+    endDate: new Date(),
+  })
+
   // Inisialisasi form dengan react-hook-form dan zod
   const form = useForm<FormValues>({
     resolver: zodResolver(proyekFormSchema),
@@ -171,8 +181,6 @@ export default function KelolaProyek() {
 
   // Fetch data when component mounts
   useEffect(() => {
-  console.log("ID yang diterima:", id);
-
     getAllDataDivisi()
     getAllDataProyek()
   }, [])
@@ -267,7 +275,7 @@ export default function KelolaProyek() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`/api/admin/deleteDataProyek`, { data: { id_proyek: id } })
+          .delete(`/api/admin/deleteProyek`, { data: { id_proyek: id } })
           .then((response) => {
             getAllDataProyek()
             Swal.fire("Terhapus!", "Proyek telah berhasil dihapus.", "success")
@@ -325,7 +333,7 @@ export default function KelolaProyek() {
 
         if (result.isConfirmed) {
           // Kirim permintaan update setelah konfirmasi
-          const response = await axios.put(`/api/admin/updateDataProyek/${currentId}`, submitData)
+          const response = await axios.put(`/api/admin/updateProyek/${currentId}`, submitData)
 
           if (response.data.status === "success") {
             // Perbarui data proyek
@@ -507,7 +515,6 @@ export default function KelolaProyek() {
 
   // Render keterlambatan badge
   const renderTelatBadge = (proyek: Proyek) => {
-    if (proyek.status === "done") return null
 
     return isTelat(proyek) ? (
       <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
@@ -520,14 +527,78 @@ export default function KelolaProyek() {
     )
   }
 
+  const handleExportData = async () => {
+    try {
+      const formattedStartDate = formatDate(exportDateRange.startDate, "yyyy-MM-dd")
+      const formattedEndDate = formatDate(exportDateRange.endDate, "yyyy-MM-dd")
+
+      // Show loading indicator
+      Swal.fire({
+        title: "Mengekspor data...",
+        text: "Mohon tunggu sebentar",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading()
+        },
+      })
+
+      setExportDialogOpen(false)
+
+
+      // Make API request to export data
+      const response = await axios.get(`/api/admin/exportDataProyek`, {
+        params: {
+          tanggal_awal: formattedStartDate,
+          tanggal_akhir: formattedEndDate,
+        },
+        responseType: "blob", // Important for file downloads
+      })
+
+      // Create a download link
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement("a")
+      link.href = url
+      link.setAttribute("download", `proyek_${formattedStartDate}_${formattedEndDate}.xlsx`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+
+      // Close loading indicator and dialog
+      Swal.close()
+
+      // Show success message
+      Swal.fire({
+        title: "Berhasil!",
+        text: "Data proyek berhasil diekspor.",
+        icon: "success",
+        timer: 2000,
+      })
+    } catch (err) {
+      console.error("Error exporting data:", err)
+      Swal.fire({
+        title: "Gagal!",
+        text: "Terjadi kesalahan saat mengekspor data proyek.",
+        icon: "error",
+      }).then(() => {
+        setExportDialogOpen(true)
+      })
+
+    }
+  }
+
   return (
     <AdminLayout>
       <div className="p-1 md:p-6">
         <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between">
           <h1 className="text-2xl font-bold md:mb-0 mb-3">Kelola Proyek</h1>
-          <Button onClick={navigateToTambahProyek}>
-            <Plus className="mr-2 h-4 w-4" /> Tambah Proyek
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setExportDialogOpen(true)}>
+              <Download className="mr-2 h-4 w-4" /> Export Data
+            </Button>
+            <Button onClick={navigateToTambahProyek}>
+              <Plus className="mr-2 h-4 w-4" /> Tambah Proyek
+            </Button>
+          </div>
         </div>
 
         <div className="mb-4 flex flex-col md:flex-row items-start md:items-center gap-4">
@@ -588,7 +659,7 @@ export default function KelolaProyek() {
                       <TableHead className="min-w-[200px]">Nama Proyek</TableHead>
                       <TableHead className="min-w-[150px]">Divisi</TableHead>
                       <TableHead className="min-w-[120px]">Status</TableHead>
-                      <TableHead className="min-w-[120px]">Keterangan</TableHead>
+                      <TableHead className="min-w-[120px]">Keterlambatan</TableHead>
                       <TableHead className="min-w-[150px]">Progress</TableHead>
                       <TableHead className="min-w-[120px]">Tanggal Mulai</TableHead>
                       <TableHead className="min-w-[120px]">Tanggal Selesai</TableHead>
@@ -805,6 +876,25 @@ export default function KelolaProyek() {
                             <SelectItem value="done">Selesai</SelectItem>
                           </SelectContent>
                         </Select>
+                        <FormDescription>Progress akan dihitung otomatis berdasarkan status</FormDescription>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          <div className="flex items-center">
+                            <span className="w-2 h-2 rounded-full bg-yellow-500 mr-1.5"></span>
+                            <span>Pending: 0%</span>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></span>
+                            <span>In Progress: 50%</span>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="w-2 h-2 rounded-full bg-purple-500 mr-1.5"></span>
+                            <span>Menunggu Review: 75%</span>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="w-2 h-2 rounded-full bg-green-500 mr-1.5"></span>
+                            <span>Selesai: 100%</span>
+                          </div>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -892,6 +982,65 @@ export default function KelolaProyek() {
                 </DialogFooter>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog Export Data */}
+        <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Export Data Proyek</DialogTitle>
+              <DialogDescription>Pilih rentang tanggal untuk mengekspor data proyek</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="startDate">Tanggal Mulai</Label>
+                  <div className="flex items-center">
+                    <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <DatePicker
+                      selected={exportDateRange.startDate}
+                      onSelect={(date) => setExportDateRange({ ...exportDateRange, startDate: date || new Date() })}
+                      className="w-full"
+                      disabled={false}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Pilih tanggal awal untuk rentang data yang akan diekspor
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endDate">Tanggal Akhir</Label>
+                  <div className="flex items-center">
+                    <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <DatePicker
+                      selected={exportDateRange.endDate}
+                      onSelect={(date) => setExportDateRange({ ...exportDateRange, endDate: date || new Date() })}
+                      className="w-full"
+                      disabled={false}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Pilih tanggal akhir untuk rentang data yang akan diekspor
+                  </p>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setExportDialogOpen(false)}>
+                Batal
+              </Button>
+              <Button
+                onClick={handleExportData}
+                disabled={
+                  !exportDateRange.startDate ||
+                  !exportDateRange.endDate ||
+                  isAfter(exportDateRange.startDate, exportDateRange.endDate)
+                }
+              >
+                <Download className="mr-2 h-4 w-4" /> Export Data
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

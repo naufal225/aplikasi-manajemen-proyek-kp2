@@ -61,6 +61,8 @@ Route::middleware('auth')->prefix('/api')->group(function() {
         Route::put('/giveReview', [KelolaDataProyekAdminController::class, 'giveReview']);
 
         Route::get('/getTugasByIdProyek/{id_proyek}', [KelolaDataProyekAdminController::class, 'getTugasByIdProyek']);
+
+        Route::get('/exportDataProyek', [KelolaDataProyekAdminController::class, 'exportDataProyek']);
     });
 
 });
