@@ -40,6 +40,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'karyawan' => [
+        'driver' => 'sanctum',
+        'provider' => 'karyawan',
+        ],
     ],
 
     /*
@@ -69,6 +74,11 @@ return [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
+
+        'karyawan' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\Karyawan::class,
+        ],
     ],
 
     /*
