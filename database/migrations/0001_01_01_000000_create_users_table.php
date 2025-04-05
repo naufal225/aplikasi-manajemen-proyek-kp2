@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('nomor_telepon');
             $table->string('alamat');
             $table->date('tanggal_lahir');
+            $table->longText('foto_profil')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

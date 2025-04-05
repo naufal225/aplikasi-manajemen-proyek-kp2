@@ -14,9 +14,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { AvatarImage } from "@radix-ui/react-avatar"
+
+import { UserProfile } from "@/models/Models"
 
 export function AdminHeader() {
-  const [user, setUser] = useState<{ nama_lengkap: string, email: string } | null>(null)
+  const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -64,9 +67,18 @@ export function AdminHeader() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar className="h-10 w-10">
+              <Avatar className="h-10 w-10">
+                  {/* Foto profil tampil di sini jika ada */}
+                  {user?.foto_profil && !loading && (
+                    <AvatarImage
+                      src={`/storage/${user.foto_profil}`}
+                      alt={user.nama_lengkap || "User"}
+                    />
+                  )             }
+
+                  {/* Fallback: tampilkan inisial jika belum ada foto atau masih loading */}
                   <AvatarFallback>
-                    {loading ? "..." :  getInitials(user?.nama_lengkap) || "AB"}
+                    {getInitials(user?.nama_lengkap) || "AB"}
                   </AvatarFallback>
                 </Avatar>
               </Button>

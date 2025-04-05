@@ -1,5 +1,9 @@
 "use client"
 
+import { AvatarFallback, Avatar } from "@/components/ui/avatar"
+
+import { AvatarImage } from "@/components/ui/avatar"
+
 import type React from "react"
 
 import { useState, useEffect } from "react"
@@ -16,7 +20,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePicker } from "@/components/ui/date-picker"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { AlertCircle, Camera, CheckCircle, Eye, EyeOff, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -78,6 +81,8 @@ export default function ProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [skipFetchOnce, setSkipFetchOnce] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   // Inisialisasi form profil
   const profileForm = useForm<ProfileFormValues>({
@@ -103,41 +108,40 @@ export default function ProfilePage() {
     },
   })
 
+  const fetchUserProfile = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await axios.get<{ status: string; data: UserProfile }>("/api/admin/getUserLogedIn")
+      if (response.data.status === "success") {
+        const newUserData = response.data.data
+        setUser(newUserData)
+
+        profileForm.reset({
+          nama_lengkap: newUserData.nama_lengkap,
+          username: newUserData.username,
+          email: newUserData.email,
+          jenis_kelamin: newUserData.jenis_kelamin,
+          nomor_telepon: newUserData.nomor_telepon,
+          alamat: newUserData.alamat,
+          tanggal_lahir: new Date(newUserData.tanggal_lahir),
+        })
+      } else {
+        setError("Gagal memuat data profil")
+      }
+    } catch (err) {
+      console.error("Error fetching profile:", err)
+      setError("Terjadi kesalahan saat memuat data profil")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // Fetch user data
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        const response = await axios.get<{ status: string; data: UserProfile }>("/api/admin/getUserLogedIn")
-        if (response.data.status === "success") {
-          const userData = response.data.data
-          setUser(userData)
-
-          // Set form values
-          profileForm.reset({
-            nama_lengkap: userData.nama_lengkap,
-            username: userData.username,
-            email: userData.email,
-            jenis_kelamin: userData.jenis_kelamin,
-            nomor_telepon: userData.nomor_telepon,
-            alamat: userData.alamat,
-            tanggal_lahir: new Date(userData.tanggal_lahir),
-          })
-        } else {
-          setError("Gagal memuat data profil")
-        }
-      } catch (err) {
-        console.error("Error fetching profile:", err)
-        setError("Terjadi kesalahan saat memuat data profil")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     fetchUserProfile()
-  }, [profileForm])
+  }, [])
 
   // Handle profile form submission
   const onSubmitProfile = async (data: ProfileFormValues) => {
@@ -146,50 +150,69 @@ export default function ProfilePage() {
     setSuccess(null)
 
     try {
+      const formattedDate = format(data.tanggal_lahir, "yyyy-MM-dd")
+
       const submitData = {
-        ...data,
-        tanggal_lahir: format(data.tanggal_lahir, "yyyy-MM-dd"),
+        id: user?.id,
+        nama_lengkap: data.nama_lengkap,
+        username: data.username,
+        email: data.email,
+        jenis_kelamin: data.jenis_kelamin,
+        nomor_telepon: data.nomor_telepon,
+        alamat: data.alamat,
+        tanggal_lahir: formattedDate,
       }
 
       const response = await axios.put("/api/admin/updateProfile", submitData)
 
       if (response.data.status === "success") {
         setSuccess("Profil berhasil diperbarui")
+        setUser(response.data.data) // Update user state
 
-        // Update user data
-        if (user) {
-          setUser({
-            ...user,
-            ...submitData,
-            tanggal_lahir: submitData.tanggal_lahir,
-          })
-        }
+        profileForm.reset({
+          nama_lengkap: user?.nama_lengkap,
+          username: user?.username,
+          email: user?.email,
+          jenis_kelamin: user?.jenis_kelamin,
+          nomor_telepon: user?.nomor_telepon,
+          alamat: user?.alamat,
+          tanggal_lahir: new Date(user!.tanggal_lahir),
+        }) // Reset form
 
-        // Show success message
         Swal.fire({
           title: "Berhasil!",
           text: "Profil berhasil diperbarui",
           icon: "success",
           timer: 2000,
         })
+
+        window.location.href = "/profil"
       } else {
-        setError(response.data.message || "Gagal memperbarui profil")
+        // Ini jarang terjadi, tapi disiapkan
+        const msg = response.data.message || "Gagal memperbarui profil"
+        setError(msg)
+        Swal.fire({
+          title: "Gagal!",
+          text: msg.join(" "),
+          icon: "error",
+          timer: 2000,
+        })
       }
     } catch (err: any) {
       console.error("Error updating profile:", err)
 
-      // Handle validation errors
-      if (err.response?.status === 422 && err.response?.data?.errors) {
-        const apiErrors = err.response.data.errors
+      if (err.response?.status === 422 && err.response?.data?.message) {
+        const apiErrors = err.response.data.message
 
         Object.keys(apiErrors).forEach((key) => {
-          profileForm.setError(key as any, {
+          profileForm.setError(key as keyof ProfileFormValues, {
             type: "server",
             message: Array.isArray(apiErrors[key]) ? apiErrors[key][0] : apiErrors[key],
           })
         })
       } else {
-        setError(err.response?.data?.message || "Terjadi kesalahan saat memperbarui profil")
+        const fallback = err.response?.data?.message || "Terjadi kesalahan saat memperbarui profil."
+        setError(fallback)
       }
     } finally {
       setIsSubmitting(false)
@@ -203,7 +226,15 @@ export default function ProfilePage() {
     setSuccess(null)
 
     try {
-      const response = await axios.put("/api/admin/updatePassword", data)
+      // Include user ID in the password update request
+      const submitData = {
+        id: user?.id, // Add user ID to the data
+        current_password: data.current_password,
+        new_password: data.new_password,
+        confirm_password: data.confirm_password,
+      }
+
+      const response = await axios.put("/api/admin/updatePassword", submitData)
 
       if (response.data.status === "success") {
         setSuccess("Password berhasil diperbarui")
@@ -257,6 +288,8 @@ export default function ProfilePage() {
     const file = event.target.files?.[0]
     if (!file) return
 
+    console.log("FILEE: " + file)
+
     // Check file type
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg"]
     if (!allowedTypes.includes(file.type)) {
@@ -285,8 +318,32 @@ export default function ProfilePage() {
     }
     reader.readAsDataURL(file)
 
-    // Upload file
-    uploadPhoto(file)
+    // Store the file for later upload
+    setSelectedFile(file)
+
+    // Show confirmation modal
+    Swal.fire({
+      title: "Konfirmasi Upload",
+      text: "Apakah Anda yakin ingin mengupload foto ini?",
+      imageUrl: URL.createObjectURL(file),
+      imageWidth: 200,
+      imageHeight: 200,
+      imageAlt: "Preview foto profil",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Upload",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Make sure we're using the file that was selected
+        uploadPhoto(file)
+      } else {
+        // Reset preview if user cancels
+        setPreviewImage(null)
+        setSelectedFile(null)
+      }
+    })
   }
 
   // Upload photo to server
@@ -295,14 +352,25 @@ export default function ProfilePage() {
     setError(null)
 
     try {
+      // Create a new FormData instance
       const formData = new FormData()
-      formData.append("foto_profil", file)
 
-      const response = await axios.post("/api/admin/updateProfilePhoto", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
+      // Explicitly append the file with the correct field name
+      formData.append("foto_profil", file, file.name)
+
+      // Add the user ID
+      if (user?.id) {
+        formData.append("id", user.id.toString())
+      }
+
+      console.log("Uploading file:", file.name, file.type, file.size)
+
+      // Log the FormData entries to verify content (for debugging)
+      for (const pair of formData.entries()) {
+        console.log(pair[0], pair[1])
+      }
+
+      const response = await axios.post("/api/admin/updateProfilePhoto", formData)
 
       if (response.data.status === "success") {
         // Update user data with new photo URL
@@ -320,15 +388,30 @@ export default function ProfilePage() {
           icon: "success",
           timer: 2000,
         })
+
+        // Reset selected file
+        setSelectedFile(null)
       } else {
-        setError(response.data.message || "Gagal memperbarui foto profil")
+        setError(response.data.message.join(" ") || "Gagal memperbarui foto profil")
+        const msg = response.data.message
+        Swal.fire({
+          title: "Gagal!",
+          text: msg.join(" "),
+          icon: "error",
+          timer: 2000,
+        })
+
+        // Reset preview and selected file if upload fails
+        setPreviewImage(null)
+        setSelectedFile(null)
       }
     } catch (err: any) {
       console.error("Error uploading photo:", err)
       setError(err.response?.data?.message || "Terjadi kesalahan saat mengunggah foto profil")
 
-      // Reset preview if upload fails
+      // Reset preview and selected file if upload fails
       setPreviewImage(null)
+      setSelectedFile(null)
     } finally {
       setIsUploadingPhoto(false)
     }
@@ -342,6 +425,20 @@ export default function ProfilePage() {
     if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase()
 
     return (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase()
+  }
+
+  // Safely get gender display text
+  const getGenderDisplayText = (gender: string | undefined) => {
+    if (gender === "LAKI-LAKI") return "Laki-laki"
+    if (gender === "PEREMPUAN") return "Perempuan"
+    return ""
+  }
+
+  // Safely get admin type display text
+  const getAdminTypeDisplayText = (type: string | undefined) => {
+    if (type === "owner") return "Owner"
+    if (type === "admin") return "Admin"
+    return ""
   }
 
   return (
@@ -376,7 +473,7 @@ export default function ProfilePage() {
                     {previewImage ? (
                       <AvatarImage src={previewImage} alt="Preview" />
                     ) : user?.foto_profil ? (
-                      <AvatarImage src={user.foto_profil} alt={user.nama_lengkap} />
+                      <AvatarImage src={'/storage/' + user.foto_profil} alt={user.nama_lengkap || "User"} />
                     ) : (
                       <AvatarFallback className="text-3xl">{getUserInitials()}</AvatarFallback>
                     )}
@@ -399,13 +496,13 @@ export default function ProfilePage() {
 
                 {user && (
                   <div className="text-center">
-                    <h3 className="text-lg font-medium">{user.nama_lengkap}</h3>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                    <h3 className="text-lg font-medium">{user.nama_lengkap || ""}</h3>
+                    <p className="text-sm text-muted-foreground">{user.email || ""}</p>
                     <Badge
                       variant="outline"
                       className={`mt-2 ${user.tipe_admin === "owner" ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-blue-50 text-blue-700 border-blue-200"}`}
                     >
-                      {user.tipe_admin === "owner" ? "Owner" : "Admin"}
+                      {getAdminTypeDisplayText(user.tipe_admin)}
                     </Badge>
                   </div>
                 )}
@@ -504,10 +601,10 @@ export default function ProfilePage() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Jenis Kelamin</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={true}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder="Pilih jenis kelamin" />
+                                      <SelectValue>{getGenderDisplayText(field.value)}</SelectValue>
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -515,6 +612,7 @@ export default function ProfilePage() {
                                     <SelectItem value="PEREMPUAN">Perempuan</SelectItem>
                                   </SelectContent>
                                 </Select>
+                                <FormDescription>Jenis kelamin tidak dapat diubah</FormDescription>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -705,4 +803,6 @@ export default function ProfilePage() {
     </AdminLayout>
   )
 }
+
+
 

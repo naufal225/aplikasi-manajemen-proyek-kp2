@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\KelolaDataDivisiAdminController;
 use App\Http\Controllers\Admin\KelolaDataKaryawanAdminController;
 use App\Http\Controllers\Admin\KelolaDataProyekAdminController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Worksheet\RowIterator;
@@ -65,6 +66,11 @@ Route::middleware('auth')->prefix('/api')->group(function() {
         Route::get('/getTugasByIdProyek/{id_proyek}', [KelolaDataProyekAdminController::class, 'getTugasByIdProyek']);
 
         Route::get('/exportDataProyek', [KelolaDataProyekAdminController::class, 'exportDataProyek']);
+
+        Route::put('/updateProfile', [ProfileController::class, 'updateProfile']);
+
+        Route::put('/updatePassword', [ProfileController::class, 'updatePassword']);
+        Route::post('/updateProfilePhoto', [ProfileController::class, 'updateProfilePhoto']);
     });
 
 });
@@ -119,7 +125,7 @@ Route::middleware(['auth', 'web'])->group(function() {
         });
 
     });
-    
+
     Route::get('/profil', function() {
         return Inertia::render('admin/profil/profil');
     });

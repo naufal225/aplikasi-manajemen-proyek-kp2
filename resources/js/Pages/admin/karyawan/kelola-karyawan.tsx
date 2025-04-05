@@ -170,8 +170,8 @@ export default function KelolaKaryawan() {
     const filtered = karyawan.filter(
       (item) =>
         item.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.nomor_telepon.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.email!.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item?.nomor_telepon!.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.divisi?.nama_divisi || "").toLowerCase().includes(searchTerm.toLowerCase()),
     )
 
