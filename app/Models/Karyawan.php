@@ -19,7 +19,11 @@ class Karyawan extends Model
     }
 
     public function manajerFor() {
-        return $this->belongsTo(Divisi::class, 'id_manajer');
+        return $this->belongsTo(Divisi::class, 'id_manajer') ?? null;
     }
 
+    public function isManajer()
+    {
+        return Divisi::where('id_manajer', $this->id)->exists() ? "manager" : "employee";
+    }
 }

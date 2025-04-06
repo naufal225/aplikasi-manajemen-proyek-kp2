@@ -45,6 +45,11 @@ return [
         'driver' => 'sanctum',
         'provider' => 'karyawan',
         ],
+        
+        'api' => [
+        'driver' => 'sanctum',
+        'provider' => 'karyawan',
+    ],
     ],
 
     /*
@@ -79,6 +84,7 @@ return [
         'driver' => 'eloquent',
         'model' => App\Models\Karyawan::class,
         ],
+
     ],
 
     /*

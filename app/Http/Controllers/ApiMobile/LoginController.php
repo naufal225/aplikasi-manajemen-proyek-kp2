@@ -49,7 +49,9 @@ class LoginController extends Controller
         return response()->json([
             'status' => 'success',
             'token' => $token,
-            'user' => $karyawan
+            'user' => $karyawan,
+            'divisi' => $karyawan->divisi ?? null,
+            'tipe' => $karyawan->isManajer()
         ]);
     }
 
