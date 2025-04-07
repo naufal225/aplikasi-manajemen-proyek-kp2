@@ -23,5 +23,7 @@ Route::prefix('/manajer')->group(function() {
     Route::get('/get-tugas-by-id-proyek/{id}', [ManajerController::class, 'getTugasByIdProyek'])->middleware('auth:sanctum');
     Route::put('/update-proyek/{id}', [ManajerController::class, 'updateDataProyek'])->middleware('auth:sanctum');
     Route::post('/add-tugas/{id_proyek}', [ManajerController::class, 'addTugas'])->middleware('auth:sanctum');
+    Route::put('/update-tugas/{id_tugas}', [ManajerController::class, 'updateTugas'])->middleware('auth:sanctum');
+    Route::get('/get-all-karyawan-by-divisi', [ManajerController::class, 'getAllDataKaryawanByDivisi'])->middleware('auth:sanctum');
 });
 

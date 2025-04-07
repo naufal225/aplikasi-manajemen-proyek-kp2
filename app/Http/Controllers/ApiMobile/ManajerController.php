@@ -357,6 +357,7 @@ class ManajerController extends Controller
                 "nama_tugas" => "required|string",
                 "deskripsi_tugas" => "required|string",
                 "tenggat_waktu" => "required|date",
+                "id_karyawan" => "required|exists:karyawan,id"
             ]);
 
             if ($validator->fails()) {
@@ -377,11 +378,21 @@ class ManajerController extends Controller
                 ], 404);
             }
 
+            $karyawanTugas = Karyawan::find($request->id_karyawan);
+
+            if (!$karyawanTugas || !$karyawanTugas->id_divisi) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Divisi tidak ditemukan untuk karyawan ini untuk tugas.'
+                ], 404);
+            }
+
             $tugas = Tugas::create([
                 'id_divisi' => $karyawan->id_divisi,
                 'id_proyek' => $id_proyek,
+                'id_karyawan' => $validated['id_karyawan'],
                 'nama_tugas' => $validated['nama_tugas'],
-                'deskripsi_tugas' => $validated['deskripsi_proyek'],
+                'deskripsi_tugas' => $validated['deskripsi_tugas'],
                 'tenggat_waktu' => $validated['tenggat_waktu'],
                 'status' => 'pending',
             ]);
@@ -394,6 +405,110 @@ class ManajerController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan saat menambah data.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateTugas(Request $request, $id_tugas) {
+        try {
+            // Validasi input
+            $validator = Validator::make($request->all(), [
+                "nama_tugas" => "required|string",
+                "deskripsi_tugas" => "required|string",
+                "tenggat_waktu" => "required|date",
+                "id_karyawan" => "required|exists:karyawan,id"
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $validator->errors()->messages()
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+
+            // Ambil data karyawan (yang sedang login sebagai manajer, misalnya)
+            $karyawanLogin = Karyawan::find($request->user()->id);
+            if (!$karyawanLogin || !$karyawanLogin->id_divisi) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Divisi tidak ditemukan untuk karyawan login.'
+                ], 404);
+            }
+
+            // Ambil data karyawan yang ditugaskan
+            $karyawanTugas = Karyawan::find($validated['id_karyawan']);
+            if (!$karyawanTugas || !$karyawanTugas->id_divisi) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Divisi tidak ditemukan untuk karyawan yang ditugaskan.'
+                ], 404);
+            }
+
+            // Ambil tugas yang akan diupdate
+            $tugas = Tugas::find($id_tugas);
+            if (!$tugas) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Tugas tidak ditemukan.'
+                ], 404);
+            }
+
+            // Update tugas
+            $tugas->update([
+                'id_divisi' => $karyawanLogin->id_divisi,
+                'id_karyawan' => $validated['id_karyawan'],
+                'nama_tugas' => $validated['nama_tugas'],
+                'deskripsi_tugas' => $validated['deskripsi_tugas'],
+                'tenggat_waktu' => $validated['tenggat_waktu'],
+                'status' => 'pending',
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Tugas berhasil diperbarui.',
+                'data' => $tugas->fresh() // ambil data terbaru setelah update
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat mengupdate data.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function getAllDataKaryawanByDivisi(Request $request) {
+        try {
+            $user = $request->user();
+            $karyawan = Karyawan::where('email', $user->email)->first();
+            $divisi = $karyawan->divisi;
+
+            if (!$divisi) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User tidak memiliki divisi.'
+                ], 404);
+            }
+
+            $data = $divisi->karyawan()
+                           ->latest()
+                           ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'karyawan' => $data,
+                    'jumlah' => $data->count() ?? 0
+                ]
+            ]);
+        } catch(Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat mengambil data.',
                 'error' => $e->getMessage()
             ], 500);
         }
