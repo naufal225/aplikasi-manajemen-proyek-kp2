@@ -19,5 +19,6 @@ Route::prefix('/manajer')->group(function() {
     Route::get('/proyek-done', [ManajerController::class, 'ProyekDone'])->middleware('auth:sanctum');
     Route::get('/proyek-in-progress', [ManajerController::class, 'ProyekInProgress'])->middleware('auth:sanctum');
     Route::get('/proyek-by-id/{id}', [ManajerController::class, 'getProyekById'])->middleware('auth:sanctum');
+    Route::post('/proyek-add', [ManajerController::class, "addProyek"])->middleware('auth:sanctum');
 });
 
