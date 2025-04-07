@@ -5,6 +5,7 @@ namespace App\Http\Controllers\ApiMobile;
 use App\Http\Controllers\Controller;
 use App\Models\Karyawan;
 use App\Models\Proyek;
+use App\Models\Tugas;
 use Exception;
 use GuzzleHttp\Handler\Proxy;
 use Illuminate\Http\Request;
@@ -350,6 +351,53 @@ class ManajerController extends Controller
     }
 }
 
+    public function addTugas(Request $request, $id_proyek) {
+        try {
+            $validator = Validator::make($request->all(), [
+                "nama_tugas" => "required|string",
+                "deskripsi_tugas" => "required|string",
+                "tenggat_waktu" => "required|date",
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $validator->errors()->messages()
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+
+            $karyawan = Karyawan::find($request->user()->id);
+
+            if (!$karyawan || !$karyawan->id_divisi) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Divisi tidak ditemukan untuk karyawan ini.'
+                ], 404);
+            }
+
+            $tugas = Tugas::create([
+                'id_divisi' => $karyawan->id_divisi,
+                'id_proyek' => $id_proyek,
+                'nama_tugas' => $validated['nama_tugas'],
+                'deskripsi_tugas' => $validated['deskripsi_proyek'],
+                'tenggat_waktu' => $validated['tenggat_waktu'],
+                'status' => 'pending',
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $tugas
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menambah data.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
 }
