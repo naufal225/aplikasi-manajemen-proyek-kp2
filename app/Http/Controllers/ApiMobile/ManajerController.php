@@ -5,6 +5,7 @@ namespace App\Http\Controllers\ApiMobile;
 use App\Http\Controllers\Controller;
 use App\Models\Karyawan;
 use App\Models\Proyek;
+use App\Models\ReviewProyek;
 use App\Models\Tugas;
 use Exception;
 use GuzzleHttp\Handler\Proxy;
@@ -291,6 +292,138 @@ class ManajerController extends Controller
         }
     }
 
+    public function getTugasByIdTugas(Request $request, $id)
+{
+    try {
+        $user = $request->user();
+        $karyawan = Karyawan::where('email', $user->email)->first();
+
+        if (!$karyawan || !$karyawan->id_divisi) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User tidak memiliki divisi.'
+            ], 404);
+        }
+
+        // Ambil tugas dengan relasi proyek dan karyawan
+        $tugas = Tugas::with(['karyawan', 'proyek'])
+            ->where('id', $id)
+            ->first();
+
+        if (!$tugas) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tugas tidak ditemukan.'
+            ], 404);
+        }
+
+        // Pastikan tugas ini berasal dari proyek dalam divisi user
+        if ($tugas->proyek->id_divisi !== $karyawan->id_divisi) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tugas tidak termasuk dalam divisi Anda.'
+            ], 403);
+        }
+
+        // Format data tugas
+        $formatted = [
+            'id' => $tugas->id,
+            'id_proyek' => $tugas->id_proyek,
+            'id_karyawan' => $tugas->id_karyawan,
+            'nama_tugas' => $tugas->nama_tugas,
+            'deskripsi_tugas' => $tugas->deskripsi_tugas,
+            'tenggat_waktu' => $tugas->tenggat_waktu,
+            'status' => $tugas->status,
+            'created_at' => $tugas->created_at,
+            'updated_at' => $tugas->updated_at,
+            'karyawan' => $tugas->karyawan ? [
+                'id' => $tugas->karyawan->id,
+                'nama' => $tugas->karyawan->nama_lengkap,
+                'email' => $tugas->karyawan->email,
+                'username' => $tugas->karyawan->username
+            ] : null
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $formatted
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Terjadi kesalahan saat mengambil data.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+public function getTugasByIdTugasWithBukti(Request $request, $id)
+{
+    try {
+        $user = $request->user();
+        $karyawan = Karyawan::where('email', $user->email)->first();
+
+        if (!$karyawan || !$karyawan->id_divisi) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User tidak memiliki divisi.'
+            ], 404);
+        }
+
+        // Ambil tugas dengan relasi proyek dan karyawan
+        $tugas = Tugas::with(['karyawan', 'proyek'])
+            ->where('id', $id)
+            ->first();
+
+        if (!$tugas) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tugas tidak ditemukan.'
+            ], 404);
+        }
+
+        // Pastikan tugas ini berasal dari proyek dalam divisi user
+        if ($tugas->proyek->id_divisi !== $karyawan->id_divisi) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tugas tidak termasuk dalam divisi Anda.'
+            ], 403);
+        }
+
+        // Format data tugas
+        $formatted = [
+            'id' => $tugas->id,
+            'id_proyek' => $tugas->id_proyek,
+            'id_karyawan' => $tugas->id_karyawan,
+            'nama_tugas' => $tugas->nama_tugas,
+            'deskripsi_tugas' => $tugas->deskripsi_tugas,
+            'tenggat_waktu' => $tugas->tenggat_waktu,
+            'path_file_bukti_tugas' => $tugas->fileBukti->path_file ?? null,
+            'status' => $tugas->status,
+            'created_at' => $tugas->created_at,
+            'updated_at' => $tugas->updated_at,
+            'karyawan' => $tugas->karyawan ? [
+                'id' => $tugas->karyawan->id,
+                'nama' => $tugas->karyawan->nama_lengkap,
+                'email' => $tugas->karyawan->email,
+                'username' => $tugas->karyawan->username
+            ] : null
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $formatted
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Terjadi kesalahan saat mengambil data.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+
     public function updateDataProyek(Request $request, $id)
 {
     try {
@@ -397,6 +530,8 @@ class ManajerController extends Controller
                 'status' => 'pending',
             ]);
 
+            $this->hitungUlangProgressProyek($id_proyek);
+
             return response()->json([
                 'status' => 'success',
                 'data' => $tugas
@@ -463,13 +598,108 @@ class ManajerController extends Controller
                 'nama_tugas' => $validated['nama_tugas'],
                 'deskripsi_tugas' => $validated['deskripsi_tugas'],
                 'tenggat_waktu' => $validated['tenggat_waktu'],
-                'status' => 'pending',
             ]);
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Tugas berhasil diperbarui.',
                 'data' => $tugas->fresh() // ambil data terbaru setelah update
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat mengupdate data.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateStatusTugas(Request $request, $id_tugas) {
+        try {
+            // Validasi input
+            $validator = Validator::make($request->all(), [
+                "status" => "required|string|in:pending,in-progress,waiting_for_review,done",
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $validator->errors()->messages()
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+
+            // Ambil tugas yang akan diupdate
+            $tugas = Tugas::find($id_tugas);
+            if (!$tugas) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Tugas tidak ditemukan.'
+                ], 404);
+            }
+
+            // Update tugas
+            $tugas->update([
+                "status" => $validated['status']
+            ]);
+
+            $this->hitungUlangProgressProyek($tugas->proyek->id);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Tugas berhasil diperbarui.',
+                'data' => $tugas->fresh() // ambil data terbaru setelah update
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat mengupdate data.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateStatusProyek(Request $request, $id_proyek) {
+        try {
+            // Validasi input
+            $validator = Validator::make($request->all(), [
+                "status" => "required|string|in:pending,in-progress,waiting_for_review,done",
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $validator->errors()->messages()
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+
+            // Ambil proyek yang akan diupdate
+            $proyek = Proyek::find($id_proyek);
+            if (!$proyek) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Proyek tidak ditemukan.'
+                ], 404);
+            }
+
+            if($validated['status'] == "waiting_for_review") {
+                ReviewProyek::create([
+                    'id_proyek' => $id_proyek,
+                ]);
+            }
+
+            // Update tugas
+            $proyek->update([
+                "status" => $validated['status']
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Proyek berhasil diperbarui.',
+                'data' => $proyek->fresh() // ambil data terbaru setelah update
             ]);
         } catch (Exception $e) {
             return response()->json([
@@ -512,6 +742,21 @@ class ManajerController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    private function hitungUlangProgressProyek($id_proyek) {
+        $proyek = Proyek::find($id_proyek);
+
+        if (!$proyek) return;
+
+        $totalTugas = Tugas::where('id_proyek', $id_proyek)->count();
+        $tugasSelesai = Tugas::where('id_proyek', $id_proyek)->where('status', 'done')->count();
+
+        $progress = $totalTugas > 0 ? round(($tugasSelesai / $totalTugas) * 100) : 0;
+
+        $proyek->update([
+            'progress' => $progress
+        ]);
     }
 
 

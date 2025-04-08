@@ -167,21 +167,18 @@ export default function KelolaPersetujuanProyek() {
         hasil_review: status,
       }
 
-    //   // Simulate API call
-    //   setTimeout(() => {
-    //     Swal.fire({
-    //       title: status === "approved" ? "Disetujui!" : "Ditolak!",
-    //       text: status === "approved" ? "Proyek telah berhasil disetujui." : "Proyek telah ditolak.",
-    //       icon: "success",
-    //     }).then(() => {
-    //       router.visit("/kelola-data-proyek")
-    //     })
-    //     setIsSubmitting(false)
-    //   }, 1000)
-
     console.log(submitData)
 
-      axios.put('/api/admin/giveReview', submitData)
+    console.log("Tipe ID:", typeof id, "value:", id)
+console.log("Tipe status:", typeof status, "value:", status)
+console.log("Tipe catatan:", typeof form.catatan, "value:", form.catatan)
+
+      axios.put('/api/admin/giveReview', submitData, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }
+      })
         .then(response => {
             if(response.data.status == 'success') {
                 Swal.fire({
@@ -190,7 +187,7 @@ export default function KelolaPersetujuanProyek() {
                     icon: "success",
                   })
                 setIsSubmitting(false)
-                router.visit('kelola-data-proyek')
+                router.visit('/kelola-data-proyek')
             } else {
                 Swal.fire({
                     title: "Terjadi Error",

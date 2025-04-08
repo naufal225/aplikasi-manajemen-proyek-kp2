@@ -218,8 +218,20 @@ class KelolaDataProyekAdminController extends Controller
         }
 
         // Pastikan review belum dinilai
-        if ($review->hasil_review !== null) {
+        if ($review->hasil_review == "approved") {
             return response()->json(['message' => 'Review sudah diproses sebelumnya.'], 400);
+        }
+
+        $proyek = Proyek::find($request->id_proyek);
+
+        if($request->hasil_review == "approved") {
+            $proyek->update([
+                'status' => 'done'
+            ]);
+        } else if($request->hasil_review == "rejected") {
+            $proyek->update([
+                'status' => 'in-progress'
+            ]);
         }
 
         // Simpan hasil review
