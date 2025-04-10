@@ -55,4 +55,23 @@ class LoginController extends Controller
         ]);
     }
 
+    public function logout(Request $request)
+{
+    $user = $request->user(); // Mendapatkan user yang sedang login (autentikasi melalui Sanctum)
+
+    if ($user) {
+        $user->currentAccessToken()->delete(); // Hapus token saat ini saja (logout dari satu perangkat)
+        return response()->json([
+            'status' => true,
+            'message' => 'Logout berhasil'
+        ], 200);
+    }
+
+    return response()->json([
+        'status' => false,
+        'message' => 'User tidak ditemukan atau belum login'
+    ], 401);
+}
+
+
 }
