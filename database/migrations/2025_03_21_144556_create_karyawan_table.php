@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('alamat');
             $table->date('tanggal_lahir');
             $table->string('password');
+            $table->longText('url_foto_profil')->nullable();
             $table->integer('skor_kinerja')->default(0)->nullable();
             $table->timestamps();
         });

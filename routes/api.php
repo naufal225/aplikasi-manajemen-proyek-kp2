@@ -32,4 +32,5 @@ Route::prefix('/manajer')->group(function() {
 
 Route::prefix('/karyawan')->group(function() {
     Route::post('/upload-bukti-tugas/{id}', [KaryawanController::class, 'uploadBuktiDanReviewTugas'])->middleware('auth:sanctum');
+    Route::post('/upload-foto-profil', [KaryawanController::class, 'uploadFotoProfil'])->middleware('auth:sanctum');
 });

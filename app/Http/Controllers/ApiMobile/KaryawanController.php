@@ -69,5 +69,40 @@ class KaryawanController extends Controller
         }
     }
 
+    public function uploadFotoProfil(Request $request)
+{
+    $request->validate([
+        'foto' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
+
+    $karyawan = $request->user();
+
+
+    if ($request->hasFile('foto')) {
+        // Hapus foto lama jika ada
+        if ($karyawan->url_foto_profil && file_exists(public_path('storage/' . $karyawan->url_foto_profil))) {
+            unlink(public_path('storage/' . $karyawan->url_foto_profil));
+        }
+
+        $path = $request->file('foto')->store('foto_karyawan', 'public');
+        $karyawan->url_foto_profil = $path;
+        $karyawan->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Foto profil berhasil diunggah',
+            'data' => [
+                'url_foto_profil' => asset('storage/' . $path),
+            ]
+        ]);
+    }
+
+    return response()->json([
+        'status' => false,
+        'message' => 'Tidak ada file yang diunggah'
+    ], 400);
+}
+
+
 
 }
