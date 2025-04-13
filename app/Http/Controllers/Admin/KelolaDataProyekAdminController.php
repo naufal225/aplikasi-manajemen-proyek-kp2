@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\ProyekExport;
 use App\Http\Controllers\Controller;
+use App\Models\Notifikasi;
 use App\Models\Proyek;
 use App\Models\ReviewProyek;
 use App\Models\Tugas;
@@ -225,10 +226,22 @@ class KelolaDataProyekAdminController extends Controller
         $proyek = Proyek::find($request->id_proyek);
 
         if($request->hasil_review == "approved") {
+            Notifikasi::create([
+                "judul" => "Proyek Selesai",
+                "pesan" => "Proyek telah selesai",
+                "id_target" => $proyek->divisi->id,
+                "target" => "divisi"
+            ]);
             $proyek->update([
                 'status' => 'done'
             ]);
         } else if($request->hasil_review == "rejected") {
+            Notifikasi::create([
+                "judul" => "Proyek Ditolak",
+                "pesan" => "Proyek ditolak admin",
+                "id_target" => $proyek->divisi->id,
+                "target" => "divisi"
+            ]);
             $proyek->update([
                 'status' => 'in-progress'
             ]);

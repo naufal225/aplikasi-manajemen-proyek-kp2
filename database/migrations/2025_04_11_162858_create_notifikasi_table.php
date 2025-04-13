@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('notifikasi', function (Blueprint $table) {
             $table->id();
+            $table->string('judul');
+            $table->text('pesan')->nullable(); // opsional: isi notifikasi lebih lengkap
+            $table->enum('target', ['karyawan', 'divisi']);
+            $table->unsignedBigInteger('id_target'); // user_id atau division_id
+            $table->boolean('dibaca')->default(false);
             $table->timestamps();
         });
     }

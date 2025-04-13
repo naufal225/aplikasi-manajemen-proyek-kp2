@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\FileBuktiPengerjaanTugas;
+use App\Models\Notifikasi;
 use App\Models\ReviewProyek;
+use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx\Rels;
 
 class KaryawanController extends Controller
 {
@@ -48,6 +51,13 @@ class KaryawanController extends Controller
                 'path_file' => $path,
                 'mime_type' => $mimeType,
                 'ukuran_file' => $size,
+            ]);
+
+            Notifikasi::create([
+                "judul" => "Permintaan Review Tugas",
+                "pesan" => $tugas->nama_tugas . " menunggu di review",
+                "target" => "karyawan",
+                "id_target" => $tugas->proyek->divisi->manajer->id
             ]);
 
             $tugas->update([
@@ -101,6 +111,55 @@ class KaryawanController extends Controller
         'status' => false,
         'message' => 'Tidak ada file yang diunggah'
     ], 400);
+}
+
+public function createNotification(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'judul' => 'required|string|max:255',
+        'pesan' => 'nullable|string',
+        'target' => 'required|in:karyawan,divisi',
+        'id_target' => 'required|integer',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    $notif = Notifikasi::create([
+        'judul' => $request->judul,
+        'pesan' => $request->pesan,
+        'target' => $request->target,
+        'id_target' => $request->id_target,
+        'dibaca' => false,
+    ]);
+
+    return response()->json([
+        'message' => 'Notifikasi berhasil dibuat',
+        'data' => $notif,
+    ], 201);
+}
+
+public function getAllDataNotification(Request $request)
+{
+    $user = $request->user();
+
+    $notifikasi = Notifikasi::where(function ($query) use ($user) {
+        $query->where(function ($q) use ($user) {
+            $q->where('target', 'divisi')
+              ->where('id_target', $user->division_id);
+        })->orWhere(function ($q) use ($user) {
+            $q->where('target', 'karyawan')
+              ->where('id_target', $user->id);
+        });
+    })
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+    return response()->json([
+        'status' => 'success',
+        'data' => $notifikasi
+    ]);
 }
 
 

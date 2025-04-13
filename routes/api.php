@@ -3,7 +3,7 @@
 use App\Http\Controllers\ApiMobile\KaryawanController;
 use App\Http\Controllers\ApiMobile\LoginController;
 use App\Http\Controllers\ApiMobile\ManajerController;
-
+use App\Models\Karyawan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,11 +28,15 @@ Route::prefix('/manajer')->group(function() {
     Route::put('/update-tugas/{id_tugas}', [ManajerController::class, 'updateTugas'])->middleware('auth:sanctum');
     Route::put('/update-status-tugas/{id_tugas}', [ManajerController::class, 'updateStatusTugas'])->middleware('auth:sanctum');
     Route::get('/get-all-karyawan-by-divisi', [ManajerController::class, 'getAllDataKaryawanByDivisi'])->middleware('auth:sanctum');
+    Route::get('/create-notification', [KaryawanController::class, 'createNotification'])->middleware('auth:santum');
+    Route::get('/getAllDataNotification', [ManajerController::class, 'getAllDataNotification'])->middleware('auth:sanctum');
 });
 
 Route::prefix('/karyawan')->group(function() {
     Route::post('/upload-bukti-tugas/{id}', [KaryawanController::class, 'uploadBuktiDanReviewTugas'])->middleware('auth:sanctum');
     Route::post('/upload-foto-profil', [KaryawanController::class, 'uploadFotoProfil'])->middleware('auth:sanctum');
+    Route::get('/create-notification', [KaryawanController::class, 'createNotification'])->middleware('auth:santum');
+    Route::get('/getAllDataNotification', [KaryawanController::class, 'getAllDataNotification'])->middleware('auth:sanctum');
 });
 
 Route::get('/logout', [LoginController::class, 'logout'])->middleware('auth:sanctum');

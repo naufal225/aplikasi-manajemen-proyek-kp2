@@ -4,12 +4,14 @@ namespace App\Http\Controllers\ApiMobile;
 
 use App\Http\Controllers\Controller;
 use App\Models\Karyawan;
+use App\Models\Notifikasi;
 use App\Models\Proyek;
 use App\Models\ReviewProyek;
 use App\Models\Tugas;
 use Exception;
 use GuzzleHttp\Handler\Proxy;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class ManajerController extends Controller
@@ -532,6 +534,13 @@ public function getTugasByIdTugasWithBukti(Request $request, $id)
 
             $this->hitungUlangProgressProyek($id_proyek);
 
+            Notifikasi::create([
+                'judul' => 'Penugasan',
+                'pesan' => 'Anda ditugaskan ke tugas ' . $validated['nama_tugas'],
+                'target' => 'karyawan',
+                'id_target' => $validated['id_karyawan']
+            ]);
+
             return response()->json([
                 'status' => 'success',
                 'data' => $tugas
@@ -744,6 +753,33 @@ public function getTugasByIdTugasWithBukti(Request $request, $id)
         }
     }
 
+    public function createNotification(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'judul' => 'required|string|max:255',
+            'pesan' => 'nullable|string',
+            'target' => 'required|in:karyawan,divisi',
+            'id_target' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $notif = Notifikasi::create([
+            'judul' => $request->judul,
+            'pesan' => $request->pesan,
+            'target' => $request->target,
+            'id_target' => $request->id_target,
+            'dibaca' => false,
+        ]);
+
+        return response()->json([
+            'message' => 'Notifikasi berhasil dibuat',
+            'data' => $notif,
+        ], 201);
+    }
+
     private function hitungUlangProgressProyek($id_proyek) {
         $proyek = Proyek::find($id_proyek);
 
@@ -759,5 +795,26 @@ public function getTugasByIdTugasWithBukti(Request $request, $id)
         ]);
     }
 
+    public function getAllDataNotification(Request $request)
+{
+    $user = $request->user();
+
+    $notifikasi = Notifikasi::where(function ($query) use ($user) {
+        $query->where(function ($q) use ($user) {
+            $q->where('target', 'divisi')
+              ->where('id_target', $user->division_id);
+        })->orWhere(function ($q) use ($user) {
+            $q->where('target', 'karyawan')
+              ->where('id_target', $user->id);
+        });
+    })
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+    return response()->json([
+        'status' => 'success',
+        'data' => $notifikasi
+    ]);
+}
 
 }
