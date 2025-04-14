@@ -363,7 +363,7 @@ public function getTugasByIdTugasWithBukti(Request $request, $id)
 {
     try {
         $user = $request->user();
-        $karyawan = Karyawan::where('email', $user->email)->first();
+        $karyawan = Karyawan::where('email', $user->email)->latest()->first();
 
         if (!$karyawan || !$karyawan->id_divisi) {
             return response()->json([
@@ -734,6 +734,7 @@ public function getTugasByIdTugasWithBukti(Request $request, $id)
             }
 
             $data = $divisi->karyawan()
+                           ->where('id', '!=', $karyawan->id)
                            ->latest()
                            ->get();
 
