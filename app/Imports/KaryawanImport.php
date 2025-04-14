@@ -100,7 +100,7 @@ class KaryawanImport implements ToCollection, WithBatchInserts, WithUpserts, Wit
                     'nomor_telepon' => $row['nomor_telepon'],
                     'alamat' => $row['alamat'],
                     'tanggal_lahir' => $tanggal_lahir,
-                    'password' => bcrypt($row['password']),
+                    'password' => bcrypt($row['password']) ?? bcrypt("pasword"),
                 ]
             );
         }
