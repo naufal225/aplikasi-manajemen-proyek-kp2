@@ -89,20 +89,25 @@ class KaryawanImport implements ToCollection, WithBatchInserts, WithUpserts, Wit
                 }
             }
 
-            // Upsert data karyawan berdasarkan email
-            Karyawan::updateOrCreate(
-                ['email' => $row['email']], // Kunci unik
-                [
-                    'id_divisi' => $id_divisi,
-                    'nama_lengkap' => $row['nama_lengkap'],
-                    'username' => $row['username'],
-                    'jenis_kelamin' => $jenis_kelamin,
-                    'nomor_telepon' => $row['nomor_telepon'],
-                    'alamat' => $row['alamat'],
-                    'tanggal_lahir' => $tanggal_lahir,
-                    'password' => bcrypt($row['password']) ?? bcrypt("pasword"),
-                ]
-            );
+            $karyawan = Karyawan::firstOrNew([
+                'email' => $row['email'],
+                'username' => $row['username'],
+            ]);
+
+            $karyawan->fill([
+                'id_divisi' => $id_divisi,
+                'nama_lengkap' => $row['nama_lengkap'],
+                'jenis_kelamin' => $jenis_kelamin,
+                'nomor_telepon' => $row['nomor_telepon'],
+                'alamat' => $row['alamat'],
+                'tanggal_lahir' => $tanggal_lahir,
+            ]);
+
+            if (!$karyawan->exists || !empty($row['password'])) {
+                $karyawan->password = bcrypt(!empty($row['password']) ? $row['password'] : 'password');
+            }
+
+            $karyawan->save();
         }
 
     }
