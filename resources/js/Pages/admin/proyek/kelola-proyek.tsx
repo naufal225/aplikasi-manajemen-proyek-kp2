@@ -876,26 +876,6 @@ export default function KelolaProyek() {
                             <SelectItem value="done">Selesai</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormDescription>Progress akan dihitung otomatis berdasarkan status</FormDescription>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-yellow-500 mr-1.5"></span>
-                            <span>Pending: 0%</span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></span>
-                            <span>In Progress: 50%</span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-purple-500 mr-1.5"></span>
-                            <span>Menunggu Review: 75%</span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-green-500 mr-1.5"></span>
-                            <span>Selesai: 100%</span>
-                          </div>
-                        </div>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />

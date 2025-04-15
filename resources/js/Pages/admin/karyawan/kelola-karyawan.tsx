@@ -252,28 +252,28 @@ export default function KelolaKaryawan() {
     if (id === null) return
 
     setCurrentId(id)
-    setDeleteDialogOpen(true)
-  }
-
-  const konfirmasiHapusKaryawan = async () => {
-    if (currentId === null) return
-
-    try {
-      // Implementasi API call untuk menghapus karyawan
-      const response = await axios.delete(`/api/admin/deleteKaryawan/${currentId}`)
-
-      if (response.data.status === "success") {
-        // Update state setelah berhasil menghapus
-        setKaryawan((prev) => prev.filter((k) => k.id !== currentId))
-        setDeleteDialogOpen(false)
-        setCurrentId(null)
-      } else {
-        // Handle error
-        console.error("Failed to delete employee:", response.data.message)
-      }
-    } catch (err) {
-      console.error("Error deleting employee:", err)
-    }
+    Swal.fire({
+        title: "Apakah Anda yakin?",
+        text: "Data Karyawan yang dihapus tidak dapat dikembalikan!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Ya, hapus!",
+        cancelButtonText: "Batal",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios
+            .delete(`/api/admin/deleteKaryawan/${currentId}`)
+            .then((response) => {
+              getAllDataKaryawan()
+              Swal.fire("Terhapus!", "Data karyawan telah berhasil dihapus.", "success")
+            })
+            .catch((error) => {
+              Swal.fire("Gagal!", error.response?.data?.message || "Terjadi kesalahan saat menghapus data karyawan.", "error")
+            })
+        }
+      })
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -919,7 +919,7 @@ export default function KelolaKaryawan() {
           </DialogContent>
         </Dialog>
 
-        {/* Dialog Konfirmasi Hapus */}
+        {/* Dialog Konfirmasi Hapus
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -932,12 +932,12 @@ export default function KelolaKaryawan() {
               <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
                 Batal
               </Button>
-              <Button variant="destructive" onClick={konfirmasiHapusKaryawan}>
+              <Button variant="destructive" onClick={handleHapusKaryawan}>
                 Hapus
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+        </Dialog> */}
 
         {/* Dialog Import Data */}
         <Dialog

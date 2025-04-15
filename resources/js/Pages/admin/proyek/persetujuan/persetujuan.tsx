@@ -158,57 +158,50 @@ export default function KelolaPersetujuanProyek() {
   }
 
   const handleSubmit = async (status: "approved" | "rejected") => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       const submitData = {
         id_proyek: Number(id),
         catatan: form.catatan,
         hasil_review: status,
+      };
+
+      const response = await axios.put('/api/admin/giveReview', submitData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        }
+      });
+
+      if (response.data.status === 'success') {
+        Swal.fire({
+          title: status === "approved" ? "Disetujui!" : "Ditolak!",
+          text: status === "approved" ? "Proyek telah berhasil disetujui." : "Proyek telah ditolak.",
+          icon: "success",
+        });
+        router.visit('/kelola-data-proyek');
+      } else {
+        Swal.fire({
+          title: "Terjadi Error",
+          text: "Server mengembalikan status gagal.",
+          icon: "error",
+        });
       }
 
-    console.log(submitData)
-
-    console.log("Tipe ID:", typeof id, "value:", id)
-console.log("Tipe status:", typeof status, "value:", status)
-console.log("Tipe catatan:", typeof form.catatan, "value:", form.catatan)
-
-      axios.put('/api/admin/giveReview', submitData, {
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          }
-      })
-        .then(response => {
-            if(response.data.status == 'success') {
-                Swal.fire({
-                    title: status === "approved" ? "Disetujui!" : "Ditolak!",
-                    text: status === "approved" ? "Proyek telah berhasil disetujui." : "Proyek telah ditolak.",
-                    icon: "success",
-                  })
-                setIsSubmitting(false)
-                router.visit('/kelola-data-proyek')
-            } else {
-                Swal.fire({
-                    title: "Terjadi Error",
-                    icon: "error",
-                  })
-                setIsSubmitting(false)
-            }
-        })
-
-      // In a real application, you would use:
-      // const response = await axios.post("/api/admin/persetujuanProyek", submitData)
     } catch (err: any) {
-      console.error("Error processing approval:", err)
+
       Swal.fire({
         title: "Gagal!",
         text: err.response?.data?.message || "Terjadi kesalahan saat memproses persetujuan.",
         icon: "error",
-      })
-      setIsSubmitting(false)
+      });
+
+    } finally {
+      setIsSubmitting(false);
     }
-  }
+  };
+
 
   const handleBack = () => {
     router.visit("/kelola-data-proyek")
