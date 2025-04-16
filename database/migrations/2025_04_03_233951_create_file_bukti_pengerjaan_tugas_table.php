@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('file_bukti_pengerjaan_tugas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('id_tugas')->constrained('tugas')->cascadeOnDelete();
-            $table->foreignId('id_user')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('id_user')->nullable()->constrained('users')->cascadeOnDelete();
             $table->string('nama_file');
             $table->string('path_file');
             $table->string('mime_type');

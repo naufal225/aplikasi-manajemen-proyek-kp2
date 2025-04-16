@@ -373,9 +373,9 @@ function DashboardContent() {
         </Card>
 
         {/* Leaderboard and Activity */}
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-1 w-full">
+        {/* <div className="grid gap-4 grid-cols-1 md:grid-cols-1 w-full"> */}
           {/* Leaderboard */}
-          <Card className="col-span-1 w-full">
+          {/* <Card className="col-span-1 w-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base md:text-lg">
                 <Trophy className="h-5 w-5 text-yellow-500" />
@@ -409,7 +409,7 @@ function DashboardContent() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
       </div>
     </AdminLayout>
   )

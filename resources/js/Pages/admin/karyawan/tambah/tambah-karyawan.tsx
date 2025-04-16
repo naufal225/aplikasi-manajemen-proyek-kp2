@@ -64,6 +64,7 @@ export default function TambahKaryawan() {
 
   // Fetch divisi data
   useEffect(() => {
+    
     const getAllDataDivisi = async () => {
       try {
         const response = await axios.get<{ status: string; data: Divisi[] }>("/api/admin/getAllDataDivisi")
@@ -143,6 +144,10 @@ export default function TambahKaryawan() {
 
   const handleCancel = () => {
     router.visit('/kelola-data-karyawan')
+  }
+
+  const handleReset = () => {
+    form.reset()
   }
 
   return (
@@ -352,8 +357,8 @@ export default function TambahKaryawan() {
                 />
               </CardContent>
               <CardFooter className="flex justify-between border-t px-6 py-4">
-                <Button variant="outline" type="button" onClick={handleCancel}>
-                  Batal
+                <Button variant="outline" type="button" onClick={handleReset}>
+                  Reset
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Menyimpan..." : "Simpan Karyawan"}

@@ -275,7 +275,7 @@ export default function KelolaProyek() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`/api/admin/deleteProyek`, { data: { id_proyek: id } })
+          .delete(`/api/admin/deleteDataProyek`, { data: { id_proyek: id } })
           .then((response) => {
             getAllDataProyek()
             Swal.fire("Terhapus!", "Proyek telah berhasil dihapus.", "success")
@@ -333,7 +333,7 @@ export default function KelolaProyek() {
 
         if (result.isConfirmed) {
           // Kirim permintaan update setelah konfirmasi
-          const response = await axios.put(`/api/admin/updateProyek/${currentId}`, submitData)
+          const response = await axios.put(`/api/admin/updateDataProyek/${currentId}`, submitData)
 
           if (response.data.status === "success") {
             // Perbarui data proyek
@@ -515,18 +515,17 @@ export default function KelolaProyek() {
 
   // Render keterlambatan badge
   const renderTelatBadge = (proyek: Proyek) => {
+    if(proyek.status != "done") return;
 
     return isTelat(proyek) ? (
       <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
         <AlertCircle className="mr-1 h-3 w-3" /> Terlambat
       </Badge>
-    ) : (
-      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+    ) :
+      (<Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
         <Clock className="mr-1 h-3 w-3" /> Tepat Waktu
-      </Badge>
-    )
+      </Badge>)
   }
-
   const handleExportData = async () => {
     try {
       const formattedStartDate = formatDate(exportDateRange.startDate, "yyyy-MM-dd")

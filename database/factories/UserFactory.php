@@ -29,7 +29,7 @@ class UserFactory extends Factory
             'nama_lengkap' => fake()->name($gender),
             'username' => fake()->userName(),
             'email' => fake()->safeEmail(),
-            'password' => Hash::make('password'),
+            'password' => bcrypt('password'),
             'tipe_admin' => fake()->randomElement(['admin', 'owner']),
             'jenis_kelamin' => $gender == 'male' ? "LAKI-LAKI" : 'PEREMPUAN',
             'nomor_telepon' => fake()->phoneNumber(),

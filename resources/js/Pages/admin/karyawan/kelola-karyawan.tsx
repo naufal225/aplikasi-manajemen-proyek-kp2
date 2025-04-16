@@ -63,7 +63,7 @@ const karyawanFormSchema = z
     nomor_telepon: z.string().min(10, "Nomor telepon tidak valid"),
     username: z.string().min(3, "Username minimal 3 karakter"),
     tanggal_lahir: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal lahir harus YYYY-MM-DD"),
-    password: z.string().min(8, "Password minimal 8 karakter").optional(),
+    password: z.string().optional(),
     password_confirmation: z.string().optional(),
   })
   .refine(
@@ -264,7 +264,7 @@ export default function KelolaKaryawan() {
       }).then((result) => {
         if (result.isConfirmed) {
           axios
-            .delete(`/api/admin/deleteKaryawan/${currentId}`)
+            .delete(`/api/admin/deleteDataKaryawan/${currentId}`)
             .then((response) => {
               getAllDataKaryawan()
               Swal.fire("Terhapus!", "Data karyawan telah berhasil dihapus.", "success")
@@ -398,7 +398,7 @@ export default function KelolaKaryawan() {
 
       if (isEdit && currentId) {
         // Update existing employee
-        const response = await axios.put(`/api/admin/updateKaryawan/${currentId}`, submitData)
+        const response = await axios.put(`/api/admin/updateDataKaryawan/${currentId}`, submitData)
 
         if (response.data.status === "success") {
           // Refresh data after successful update

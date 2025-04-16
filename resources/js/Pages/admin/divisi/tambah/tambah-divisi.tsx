@@ -79,6 +79,10 @@ export default function TambahDivisi() {
     router.visit("/kelola-data-divisi")
   }
 
+  const handleReset = () => {
+    form.reset()
+  }
+
   return (
     <AdminLayout>
       <div className="p-1 md:p-6">
@@ -148,8 +152,8 @@ export default function TambahDivisi() {
                 />
               </CardContent>
               <CardFooter className="flex justify-between border-t px-6 py-4">
-                <Button variant="outline" type="button" onClick={handleCancel}>
-                  Batal
+                <Button variant="outline" type="button" onClick={handleReset}>
+                  Reset
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Menyimpan..." : "Simpan Divisi"}
