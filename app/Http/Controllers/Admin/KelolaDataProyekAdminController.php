@@ -287,7 +287,7 @@ class KelolaDataProyekAdminController extends Controller
                 'bukti_type' => $tugas->fileBukti->mime_type ?? null,
                 'penanggung_jawab' => $tugas->karyawan ? [
                     'id' => $tugas->karyawan->id,
-                    'nama_lengkap' => $tugas->karyawan->nama,
+                    'nama_lengkap' => $tugas->karyawan->nama_lengkap,
                     'divisi' => [
                         'id' => $tugas->karyawan->divisi->id,
                         'nama_divisi' => $tugas->karyawan->divisi->nama_divisi,

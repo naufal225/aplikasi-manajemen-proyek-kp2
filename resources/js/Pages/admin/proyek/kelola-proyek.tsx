@@ -904,7 +904,7 @@ export default function KelolaProyek() {
                   />
                 </div>
                 <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => setDialogOpen(false)}>
+                  <Button variant="outline" type="button" onClick={() => setDialogOpen(true)}>
                     Batal
                   </Button>
                   <Button type="submit">{isEdit ? "Simpan Perubahan" : "Tambah Proyek"}</Button>

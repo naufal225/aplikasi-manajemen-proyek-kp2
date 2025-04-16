@@ -398,14 +398,35 @@ export default function KelolaKaryawan() {
 
       if (isEdit && currentId) {
         // Update existing employee
-        const response = await axios.put(`/api/admin/updateDataKaryawan/${currentId}`, submitData)
 
-        if (response.data.status === "success") {
-          // Refresh data after successful update
-          getAllDataKaryawan()
-          resetForm()
-          setDialogOpen(false)
+        setDialogOpen(false)
+
+        const result = await Swal.fire({
+                  title: "Apakah Anda yakin?",
+                  text: "Apakah Anda yakin untuk memperbarui data karyawan?",
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#d33",
+                  cancelButtonColor: "#3085d6",
+                  confirmButtonText: "Ya, Perbarui!",
+                  cancelButtonText: "Batal",
+                })
+
+        if(result.isConfirmed) {
+            const response = await axios.put(`/api/admin/updateDataKaryawan/${currentId}`, submitData)
+
+            if (response.data.status === "success") {
+              // Refresh data after successful update
+              Swal.fire("Berhasil!", "Data karyawan berhasil diperbarui.", "success")
+              getAllDataKaryawan()
+              resetForm()
+              setDialogOpen(false)
+            }
+        } else {
+            setDialogOpen(true)
         }
+
+
       } else {
         // Add new employee
         const response = await axios.post("/api/admin/tambahKaryawan", submitData)

@@ -240,8 +240,10 @@ export default function KelolaPersetujuanProyek() {
 
   const handleDownloadEvidence = () => {
     if (selectedEvidence) {
-      // In a real application, you would trigger a download:
-      window.open(selectedEvidence.bukti_url, '_blank')
+      const link = document.createElement('a');
+      link.href = "/storage/" + selectedEvidence.bukti_url;
+      link.download = selectedEvidence.bukti_url.split('/').pop(); // Nama file dari URL
+      link.click();
 
       Swal.fire({
         title: "Mengunduh...",
@@ -249,7 +251,7 @@ export default function KelolaPersetujuanProyek() {
         icon: "info",
         timer: 2000,
         timerProgressBar: true,
-      })
+      });
     }
   }
 

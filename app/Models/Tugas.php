@@ -22,6 +22,6 @@ class Tugas extends Model
 
     public function fileBukti()
     {
-        return $this->hasOne(FileBuktiPengerjaanTugas::class, 'id_tugas');
+        return $this->hasOne(FileBuktiPengerjaanTugas::class, 'id_tugas')->latestOfMany();
     }
 }
