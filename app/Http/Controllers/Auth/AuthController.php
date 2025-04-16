@@ -43,10 +43,12 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
-        return response()->json([
-            'success' => 'success',
-            'message' => 'Logout berhasil!'
-        ]);
+        $request->session()->invalidate();
+
+        // Regenerate CSRF token untuk keamanan
+        $request->session()->regenerateToken();
+        
+        // Redirect setelah logout
+        return redirect('/');
     }
 }

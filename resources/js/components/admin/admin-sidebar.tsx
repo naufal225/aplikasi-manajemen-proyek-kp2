@@ -12,6 +12,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { useEffect, useState } from "react"
+import { router } from "@inertiajs/react"
 
 export function AdminSidebar() {
     const [currentPath, setCurrentPath] = useState("/")
@@ -32,17 +33,17 @@ export function AdminSidebar() {
     { id: "projects", label: "Proyek", icon: Briefcase, href: "/kelola-data-proyek" },
   ]
 
+  const onLogout = () => {
+    router.visit('/logout')
+  }
+
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader>
         <div className="p-4">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center text-primary-foreground font-bold text-lg">
-              M
-            </div>
-            <div className="ml-3">
-              <h1 className="text-lg font-semibold">Manajemen Proyek</h1>
-              <p className="text-xs text-muted-foreground">Admin</p>
+            <div className="w-30 h-20 bg-white rounded-md flex items-center justify-center text-primary-foreground font-bold text-lg">
+              <img src="img/logo_grafit.png" alt="" />
             </div>
           </div>
         </div>
@@ -64,7 +65,7 @@ export function AdminSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="text-destructive hover:text-destructive hover:bg-destructive/10">
+            <SidebarMenuButton className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={onLogout}>
               <LogOut className="w-5 h-5" />
               <span>Keluar</span>
             </SidebarMenuButton>

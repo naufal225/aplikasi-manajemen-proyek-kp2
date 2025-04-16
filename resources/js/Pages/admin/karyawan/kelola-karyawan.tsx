@@ -192,7 +192,7 @@ export default function KelolaKaryawan() {
   }
 
   const navigateToTambahKaryawan = () => {
-    window.location.href = "/karyawan/tambah"
+    window.location.href = "/kelola-data-karyawan/tambah"
   }
 
   // Update the resetForm function to include password

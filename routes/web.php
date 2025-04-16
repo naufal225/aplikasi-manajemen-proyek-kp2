@@ -130,5 +130,7 @@ Route::middleware(['auth', 'web'])->group(function() {
         return Inertia::render('admin/profil/profil');
     });
 
+    Route::get('/logout', [AuthController::class, 'logout']);
+
 
 });

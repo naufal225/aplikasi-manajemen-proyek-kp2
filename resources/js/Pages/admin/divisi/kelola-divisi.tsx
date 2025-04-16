@@ -174,7 +174,7 @@ export default function KelolaDivisi() {
   }
 
   const navigateToTambahDivisi = () => {
-    window.location.href = "/divisi/tambah"
+    window.location.href = "/kelola-data-divisi/tambah"
   }
 
   const resetForm = () => {

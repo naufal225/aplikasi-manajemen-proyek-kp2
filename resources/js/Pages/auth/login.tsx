@@ -111,9 +111,14 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <Head title="Login"/>
         <Card className="border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-center">Login</CardTitle>
-          </CardHeader>
+            <CardHeader className="flex flex-col items-center">
+              <img
+                src="img/logo_grafit.png"
+                alt="Logo Grafit"
+                className="w-24 h-24 object-contain mb-2"
+              />
+              <CardTitle className="text-2xl font-semibold text-center">Login</CardTitle>
+            </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">

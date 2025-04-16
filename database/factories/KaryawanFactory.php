@@ -27,6 +27,7 @@ class KaryawanFactory extends Factory
             'jenis_kelamin' => $gender == 'male' ? "LAKI-LAKI" : 'PEREMPUAN',
             'nomor_telepon' => fake()->phoneNumber(),
             'alamat' => fake()->address(),
+            'id_divisi' => rand(1,5),
             'tanggal_lahir' => fake()->date($format='Y-m-d', $max=now()->subYears(17)->format('Y-m-d'))
         ];
     }
