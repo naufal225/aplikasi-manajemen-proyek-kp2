@@ -33,6 +33,13 @@ class LoginController extends Controller
         // Cari karyawan berdasarkan field tersebut
         $karyawan = Karyawan::where($field, $validated['login'])->first();
 
+        if(!$karyawan->divisi) {
+            return response()->json([
+                'status' => 'error',
+                'message' =>"Pastikan user punya divisi sebelum menggunakan aplikasi."
+            ], 422);
+        }
+
         if (!$karyawan || !Hash::check($validated['password'], $karyawan->password)) {
             return response()->json([
                 'status' => 'failed',

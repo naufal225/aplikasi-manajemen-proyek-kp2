@@ -386,7 +386,7 @@ export default function KelolaKaryawan() {
 
   const handleDownloadTemplate = () => {
     // Implementasi download template
-    window.open("/api/admin/downloadTemplateKaryawan", "_blank")
+    window.open("/api/admin/downloadTemplate", "_blank")
   }
 
   const onSubmit = async (data: FormValues) => {
