@@ -871,8 +871,6 @@ export default function KelolaProyek() {
                           <SelectContent>
                             <SelectItem value="pending">Pending</SelectItem>
                             <SelectItem value="in-progress">In Progress</SelectItem>
-                            <SelectItem value="waiting_for_review">Menunggu Review</SelectItem>
-                            <SelectItem value="done">Selesai</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormItem>
