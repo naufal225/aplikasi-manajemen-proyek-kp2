@@ -400,7 +400,13 @@ public function getTugasByIdTugasWithBukti(Request $request, $id)
             'nama_tugas' => $tugas->nama_tugas,
             'deskripsi_tugas' => $tugas->deskripsi_tugas,
             'tenggat_waktu' => $tugas->tenggat_waktu,
-            'path_file_bukti_tugas' => $tugas->fileBukti->path_file ?? null,
+            'file_bukti_tugas' => $tugas->fileBukti->map(function ($file) {
+                return [
+                    'id' => $file->id,
+                    'path_file' => $file->path_file,
+                    'created_at' => $file->created_at,
+                ];
+            }),
             'status' => $tugas->status,
             'created_at' => $tugas->created_at,
             'updated_at' => $tugas->updated_at,
@@ -803,7 +809,7 @@ public function getTugasByIdTugasWithBukti(Request $request, $id)
     $notifikasi = Notifikasi::where(function ($query) use ($user) {
         $query->where(function ($q) use ($user) {
             $q->where('target', 'divisi')
-              ->where('id_target', $user->division_id);
+              ->where('id_target', $user->id_divisi);
         })->orWhere(function ($q) use ($user) {
             $q->where('target', 'karyawan')
               ->where('id_target', $user->id);

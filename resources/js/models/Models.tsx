@@ -77,13 +77,18 @@ export interface Tugas {
     id_proyek: number
     nama_tugas: string
     deskripsi: string | null
-    status: "pending" | "in-progress" | "done"
-    progress: number
+    status: 'pending' | 'in-progress' | 'done'
     tanggal_mulai: string
     tenggat_waktu: string
-    bukti_pengerjaan?: string | null
-    bukti_type?: string | null
+    bukti_pengerjaan: BuktiPengerjaan[] // diperbaiki dari string/null jadi array
     penanggung_jawab: Karyawan | null
+  }
+  
+  export interface BuktiPengerjaan {
+    id: number
+    path_file: string
+    bukti_type: string
+    created_at: string
   }
 
 export interface UserProfile {

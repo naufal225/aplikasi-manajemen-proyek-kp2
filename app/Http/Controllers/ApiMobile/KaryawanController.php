@@ -20,7 +20,8 @@ class KaryawanController extends Controller
     public function uploadBuktiDanReviewTugas(Request $request, $id){
         try {
             $validator = Validator::make($request->all(), [
-                'file' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+                'files' => 'required|array',
+                'files.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
             if ($validator->fails()) {
@@ -32,26 +33,24 @@ class KaryawanController extends Controller
 
             $tugas = Tugas::findOrFail($id); // otomatis 404 kalau tidak ditemukan
 
-            $file = $request->file('file');
-            $originalName = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension();
-            $mimeType = $file->getMimeType();
-            $size = $file->getSize();
+            foreach ($request->file('files') as $file) {
+                $originalName = $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
+                $mimeType = $file->getMimeType();
+                $size = $file->getSize();
 
-            // Generate nama unik
-            $uniqueFileName = time() . '_' . Str::random(10) . '.' . $extension;
+                $uniqueFileName = time() . '_' . Str::random(10) . '.' . $extension;
+                $path = $file->storeAs('bukti_tugas', $uniqueFileName, 'public');
 
-            // Simpan file ke storage/app/public/bukti_tugas
-            $path = $file->storeAs('bukti_tugas', $uniqueFileName, 'public');
+                FileBuktiPengerjaanTugas::create([
+                    'id_tugas' => $tugas->id,
+                    'nama_file' => $originalName,
+                    'path_file' => $path,
+                    'mime_type' => $mimeType,
+                    'ukuran_file' => $size,
+                ]);
+            }
 
-            // Catat ke DB
-            FileBuktiPengerjaanTugas::create([
-                'id_tugas' => $tugas->id,
-                'nama_file' => $originalName,
-                'path_file' => $path,
-                'mime_type' => $mimeType,
-                'ukuran_file' => $size,
-            ]);
 
             Notifikasi::create([
                 "judul" => "Permintaan Review Tugas",
@@ -147,7 +146,7 @@ public function getAllDataNotification(Request $request)
     $notifikasi = Notifikasi::where(function ($query) use ($user) {
         $query->where(function ($q) use ($user) {
             $q->where('target', 'divisi')
-              ->where('id_target', $user->division_id);
+              ->where('id_target', $user->id_divisi);
         })->orWhere(function ($q) use ($user) {
             $q->where('target', 'karyawan')
               ->where('id_target', $user->id);

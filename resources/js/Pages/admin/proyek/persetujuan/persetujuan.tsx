@@ -62,12 +62,18 @@ export default function KelolaPersetujuanProyek() {
     hasil_review: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedEvidence, setSelectedEvidence] = useState<{
+  interface EvidenceItem {
     id: number
     nama_tugas: string
     bukti_url: string
     type: string
+  }
+  
+  const [selectedEvidence, setSelectedEvidence] = useState<{
+    nama_tugas: string
+    evidences: EvidenceItem[]
   } | null>(null)
+
   const [evidenceDialogOpen, setEvidenceDialogOpen] = useState(false)
 
   // Fetch project data
@@ -208,52 +214,38 @@ export default function KelolaPersetujuanProyek() {
   }
 
   const handleViewEvidence = (tugas: Tugas) => {
-    setSelectedEvidence({
-      id: tugas.id,
-      nama_tugas: tugas.nama_tugas,
-      bukti_url: tugas.bukti_pengerjaan || "",
-      type: tugas.bukti_type || "unknown",
-    })
-    setEvidenceDialogOpen(true)
+  const evidences = (tugas.bukti_pengerjaan || []).map((file) => ({
+    id: file.id,
+    nama_tugas: tugas.nama_tugas,
+    bukti_url: file.path_file,
+    type: file.bukti_type || "unknown",
+  }))
 
-    // In a real application, you would fetch the evidence details:
-    // axios.get(`/api/admin/getBuktiPengerjaan/${tugas.id}`)
-    //   .then(response => {
-    //     if (response.data.status === "success") {
-    //       setSelectedEvidence({
-    //         id: tugas.id,
-    //         nama_tugas: tugas.nama_tugas,
-    //         bukti_url: response.data.data.url,
-    //         type: response.data.data.type
-    //       })
-    //       setEvidenceDialogOpen(true)
-    //     }
-    //   })
-    //   .catch(err => {
-    //     Swal.fire({
-    //       title: "Gagal!",
-    //       text: "Gagal memuat bukti pengerjaan.",
-    //       icon: "error",
-    //     })
-    //   })
+  setSelectedEvidence({
+    nama_tugas: tugas.nama_tugas,
+    evidences,
+  })
+
+  setEvidenceDialogOpen(true)
+}
+
+const handleDownloadEvidence = (evidence: EvidenceItem) => {
+    if (!evidence.bukti_url) return;
+
+    const link = document.createElement('a');
+    link.href = "/storage/" + evidence.bukti_url;
+    link.download = evidence.bukti_url.split('/').pop();
+    link.click();
+  
+    Swal.fire({
+      title: "Mengunduh...",
+      text: `Mengunduh bukti: "${evidence.bukti_url}"`,
+      icon: "info",
+      timer: 2000,
+      timerProgressBar: true,
+    });
   }
-
-  const handleDownloadEvidence = () => {
-    if (selectedEvidence) {
-      const link = document.createElement('a');
-      link.href = "/storage/" + selectedEvidence.bukti_url;
-      link.download = selectedEvidence.bukti_url.split('/').pop(); // Nama file dari URL
-      link.click();
-
-      Swal.fire({
-        title: "Mengunduh...",
-        text: `Mengunduh bukti pengerjaan untuk tugas "${selectedEvidence.nama_tugas}"`,
-        icon: "info",
-        timer: 2000,
-        timerProgressBar: true,
-      });
-    }
-  }
+  
 
   // Render status badge
   const renderStatusBadge = (status: string) => {
@@ -533,7 +525,6 @@ export default function KelolaPersetujuanProyek() {
                                 className="flex items-center gap-1"
                                 onClick={() => handleViewEvidence(item)}
                               >
-                                {renderFileTypeIcon(item.bukti_type || "unknown")}
                                 <span>Lihat Bukti</span>
                               </Button>
                             ) : (
@@ -552,71 +543,65 @@ export default function KelolaPersetujuanProyek() {
 
         {/* Dialog Bukti Pengerjaan */}
         <Dialog open={evidenceDialogOpen} onOpenChange={setEvidenceDialogOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Bukti Pengerjaan Tugas</DialogTitle>
-              <DialogDescription>Bukti pengerjaan untuk tugas "{selectedEvidence?.nama_tugas}"</DialogDescription>
-            </DialogHeader>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Bukti Pengerjaan Tugas</DialogTitle>
+                <DialogDescription>Bukti pengerjaan untuk tugas "{selectedEvidence?.nama_tugas}"</DialogDescription>
+              </DialogHeader>
 
-            <div className="py-4">
-              {selectedEvidence && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {renderFileTypeIcon(selectedEvidence.type)}
-                      <span className="font-medium">{selectedEvidence.type.toUpperCase()} File</span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-1"
-                      onClick={handleDownloadEvidence}
-                      disabled={selectedEvidence.bukti_url === undefined || selectedEvidence.bukti_url.length == 0}
-                    >
-                      <Download className="h-4 w-4" />
-                      <span>Unduh</span>
-                    </Button>
-                  </div>
-
-                  <div className="border rounded-md p-4 bg-muted/30">
-                    {selectedEvidence.type === "image" ? (
-                      <div className="flex justify-center">
-                        <div className="border rounded-md overflow-hidden max-w-md">
-                          <img
-                            src="/placeholder.svg?height=300&width=400"
-                            alt="Bukti pengerjaan"
-                            className="w-full h-auto"
-                          />
+              <div className="py-4 max-h-[60vh] overflow-y-auto">
+                {selectedEvidence && (
+                  <div className="gap-4">
+                    {selectedEvidence.evidences.map((evidence) => (
+                      <div key={evidence.id} className="border rounded-md p-4 bg-muted/30">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            {renderFileTypeIcon(evidence.type)}
+                            <span className="font-medium">{evidence.type.toUpperCase()} File</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1"
+                            onClick={() => handleDownloadEvidence(evidence)}
+                            disabled={!evidence.bukti_url}
+                          >
+                            <Download className="h-4 w-4" />
+                            <span>Unduh</span>
+                          </Button>
                         </div>
+                    
+                        {(evidence.type === "image/jpeg" || evidence.type == "image" || evidence.bukti_url === "image/jpg") ? (
+                          <div className="flex justify-center">
+                            <div className="border rounded-md overflow-hidden max-w-md">
+                              <img
+                                src={`/storage/${evidence.bukti_url}`}
+                                alt="Bukti pengerjaan"
+                                className="w-full h-auto"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-8 text-center">
+                            {renderFileTypeIcon(evidence.type)}
+                            <p className="mt-2 font-medium">Preview tidak tersedia</p>
+                            <p className="text-sm text-muted-foreground">
+                              Silakan unduh file untuk melihat bukti pengerjaan
+                            </p>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-8 text-center">
-                        {renderFileTypeIcon(selectedEvidence.type)}
-                        <p className="mt-2 font-medium">Preview tidak tersedia</p>
-                        <p className="text-sm text-muted-foreground">
-                          Silakan unduh file untuk melihat bukti pengerjaan
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-4 flex items-center gap-1"
-                          onClick={handleDownloadEvidence}
-                        >
-                          <Download className="h-4 w-4" />
-                          <span>Unduh File</span>
-                        </Button>
-                      </div>
-                    )}
+                    ))}
                   </div>
-                </div>
-              )}
-            </div>
-
-            <DialogFooter>
-              <Button onClick={() => setEvidenceDialogOpen(false)}>Tutup</Button>
-            </DialogFooter>
-          </DialogContent>
+                )}
+              </div>
+            
+              <DialogFooter>
+                <Button onClick={() => setEvidenceDialogOpen(false)}>Tutup</Button>
+              </DialogFooter>
+            </DialogContent>
         </Dialog>
+
       </div>
     </AdminLayout>
   )

@@ -228,7 +228,7 @@ class KelolaDataProyekAdminController extends Controller
         if($request->hasil_review == "approved") {
             Notifikasi::create([
                 "judul" => "Proyek Selesai",
-                "pesan" => "Proyek telah selesai",
+                "pesan" => "Proyek". $proyek->nama_proyek ." telah selesai",
                 "id_target" => $proyek->divisi->id,
                 "target" => "divisi"
             ]);
@@ -238,7 +238,7 @@ class KelolaDataProyekAdminController extends Controller
         } else if($request->hasil_review == "rejected") {
             Notifikasi::create([
                 "judul" => "Proyek Ditolak",
-                "pesan" => "Proyek ditolak admin",
+                "pesan" => "Proyek" . $proyek->nama_proyek . " ditolak admin",
                 "id_target" => $proyek->divisi->id,
                 "target" => "divisi"
             ]);
@@ -283,8 +283,14 @@ class KelolaDataProyekAdminController extends Controller
                 'status' => $tugas->status,
                 'tanggal_mulai' => Carbon::parse($tugas['created_at'])->format('Y-m-d') ?? null,
                 'tenggat_waktu' => $tugas->tenggat_waktu,
-                'bukti_pengerjaan' => $tugas->fileBukti->path_file ?? null,
-                'bukti_type' => $tugas->fileBukti->mime_type ?? null,
+                'bukti_pengerjaan' => $tugas->fileBukti->map(function ($file) {
+                    return [
+                        'id' => $file->id,
+                        'path_file' => $file->path_file,
+                        'bukti_type' => $file->mime_type,
+                        'created_at' => $file->created_at,
+                    ];
+                }),
                 'penanggung_jawab' => $tugas->karyawan ? [
                     'id' => $tugas->karyawan->id,
                     'nama_lengkap' => $tugas->karyawan->nama_lengkap,
