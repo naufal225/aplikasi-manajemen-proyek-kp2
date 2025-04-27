@@ -157,7 +157,7 @@ function DashboardContent() {
               ) : (
                 <div className="text-2xl font-bold">{stats?.total_proyek || 0}</div>
               )}
-              <p className="text-xs text-muted-foreground">Proyek aktif</p>
+              <p className="text-xs text-muted-foreground">Proyek</p>
             </CardContent>
           </Card>
 
