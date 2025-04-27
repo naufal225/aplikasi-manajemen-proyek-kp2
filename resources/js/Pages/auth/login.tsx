@@ -109,7 +109,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
-        <Head title="Login"/>
+        <Head title="Login, Grafit: MP KP 2">
+            <link rel="icon" type="image/png" href="/img/logo_grafit.png" sizes="16x32" />
+        </Head>
         <Card className="border-gray-200">
             <CardHeader className="flex flex-col items-center">
               <img

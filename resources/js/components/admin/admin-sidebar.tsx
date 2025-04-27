@@ -43,7 +43,7 @@ export function AdminSidebar() {
         <div className="p-4">
           <div className="flex items-center">
             <div className="w-30 h-20 bg-white rounded-md flex items-center justify-center text-primary-foreground font-bold text-lg">
-              <img src="img/logo_grafit.png" alt="" />
+              <img src="/img/logo_grafit.png" alt="" />
             </div>
           </div>
         </div>

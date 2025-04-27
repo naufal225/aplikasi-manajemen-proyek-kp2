@@ -31,7 +31,6 @@ class KelolaDataProyekAdminController extends Controller
         $validator = Validator::make($request->all(), [
             'nama_proyek' => 'required|string|max:255',
             'deskripsi_proyek' => 'nullable|string',
-            'status' => 'required|string|in:pending,in-progress',
             'tanggal_mulai' => 'required|date',
             'tenggat_waktu' => 'required|date',
             'id_divisi' => 'required|exists:divisi,id'
@@ -41,10 +40,6 @@ class KelolaDataProyekAdminController extends Controller
             'nama_proyek.max' => 'Nama proyek tidak boleh lebih dari 255 karakter.',
 
             'deskripsi_proyek.string' => 'Deskripsi proyek harus berupa teks.',
-
-            'status.required' => 'Status proyek wajib diisi.',
-            'status.string' => 'Status proyek harus berupa teks.',
-            'status.in' => 'Status proyek harus salah satu dari: pending atau in-progress.',
 
             'tanggal_mulai.required' => 'Tanggal mulai proyek wajib diisi.',
             'tanggal_mulai.date' => 'Tanggal mulai proyek harus berupa tanggal yang valid.',
@@ -228,7 +223,7 @@ class KelolaDataProyekAdminController extends Controller
         if($request->hasil_review == "approved") {
             Notifikasi::create([
                 "judul" => "Proyek Selesai",
-                "pesan" => "Proyek". $proyek->nama_proyek ." telah selesai",
+                "pesan" => "Proyek ". $proyek->nama_proyek ." telah selesai",
                 "id_target" => $proyek->divisi->id,
                 "target" => "divisi"
             ]);
@@ -238,7 +233,7 @@ class KelolaDataProyekAdminController extends Controller
         } else if($request->hasil_review == "rejected") {
             Notifikasi::create([
                 "judul" => "Proyek Ditolak",
-                "pesan" => "Proyek" . $proyek->nama_proyek . " ditolak admin",
+                "pesan" => "Proyek " . $proyek->nama_proyek . " ditolak admin",
                 "id_target" => $proyek->divisi->id,
                 "target" => "divisi"
             ]);

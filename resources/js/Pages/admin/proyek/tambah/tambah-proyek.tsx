@@ -30,9 +30,6 @@ const proyekFormSchema = z
     id_divisi: z.number({
       required_error: "Silakan pilih divisi.",
     }),
-    status: z.enum(["pending", "in-progress"], {
-      required_error: "Silakan pilih status proyek.",
-    }),
     tanggal_mulai: z.date({
       required_error: "Tanggal mulai diperlukan.",
     }),
@@ -65,7 +62,6 @@ export default function TambahProyek() {
     defaultValues: {
       nama_proyek: "",
       deskripsi_proyek: "",
-      status: "pending",
       tanggal_mulai: new Date(),
       tenggat_waktu: new Date(new Date().setMonth(new Date().getMonth() + 1)),
     },
@@ -88,33 +84,14 @@ export default function TambahProyek() {
     getAllDataDivisi()
   }, [])
 
-  // Tambahkan fungsi untuk menghitung progress otomatis berdasarkan status
-  const getProgressByStatus = (status: string) => {
-    switch (status) {
-      case "pending":
-        return 0
-      case "in-progress":
-        return 50
-      case "waiting_for_review":
-        return 75
-      case "done":
-        return 100
-      default:
-        return 0
-    }
-  }
-
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true)
     setError(null)
     setSuccess(null)
 
     try {
-      // Hitung progress berdasarkan status
-      const progress = getProgressByStatus(data.status)
       const submitData = {
         ...data,
-        progress,
         tanggal_mulai: format(data.tanggal_mulai, "yyyy-MM-dd"),
         tenggat_waktu: format(data.tenggat_waktu, "yyyy-MM-dd"),
       }
@@ -250,28 +227,7 @@ export default function TambahProyek() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="in-progress">In Progress</SelectItem>
-                          </SelectContent>
-                        </Select>
 
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

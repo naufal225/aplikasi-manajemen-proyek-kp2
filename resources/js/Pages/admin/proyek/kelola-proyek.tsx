@@ -62,7 +62,7 @@ const proyekFormSchema = z
     nama_proyek: z.string().min(2, {
       message: "Nama proyek harus minimal 2 karakter.",
     }),
-    deskripsi: z.string().optional(),
+    deskripsi_proyek: z.string().optional(),
     id_divisi: z.number({
       required_error: "Silakan pilih divisi.",
     }),
@@ -84,20 +84,7 @@ const proyekFormSchema = z
 type FormValues = z.infer<typeof proyekFormSchema>
 
 // Interface untuk data proyek
-interface Proyek {
-  id: number
-  nama_proyek: string
-  deskripsi: string | null
-  id_divisi: number
-  divisi?: {
-    id: number
-    nama_divisi: string
-  } | null
-  status: "pending" | "in-progress" | "waiting_for_review" | "done"
-  progress: number
-  tanggal_mulai: string
-  tenggat_waktu: string
-}
+import { Proyek } from "@/models/Models"
 
 // Interface untuk data divisi
 interface Divisi {
@@ -140,7 +127,7 @@ export default function KelolaProyek() {
     resolver: zodResolver(proyekFormSchema),
     defaultValues: {
       nama_proyek: "",
-      deskripsi: "",
+      deskripsi_proyek: "",
       id_divisi: undefined as unknown as number,
       status: "pending",
       tanggal_mulai: new Date(),
@@ -191,7 +178,7 @@ export default function KelolaProyek() {
     const filtered = proyek.filter(
       (item) =>
         (item.nama_proyek.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (item.deskripsi && item.deskripsi.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (item.deskripsi_proyek && item.deskripsi_proyek.toLowerCase().includes(searchTerm.toLowerCase())) ||
           (item.divisi?.nama_divisi || "").toLowerCase().includes(searchTerm.toLowerCase())) &&
         (activeTab === "all" || item.status === activeTab),
     )
@@ -227,7 +214,7 @@ export default function KelolaProyek() {
   const resetForm = () => {
     form.reset({
       nama_proyek: "",
-      deskripsi: "",
+      deskripsi_proyek: "",
       id_divisi: undefined as unknown as number,
       status: "pending",
       tanggal_mulai: new Date(),
@@ -242,7 +229,7 @@ export default function KelolaProyek() {
     if (proyekToEdit) {
       form.reset({
         nama_proyek: proyekToEdit.nama_proyek,
-        deskripsi: proyekToEdit.deskripsi || "",
+        deskripsi_proyek: proyekToEdit.deskripsi_proyek || "",
         id_divisi: proyekToEdit.id_divisi,
         status: proyekToEdit.status,
         tanggal_mulai: new Date(proyekToEdit.tanggal_mulai),
@@ -685,7 +672,7 @@ export default function KelolaProyek() {
                           <TableCell>
                             <div>
                               <p className="font-medium">{item.nama_proyek}</p>
-                              <p className="text-sm text-muted-foreground line-clamp-1">{item.deskripsi}</p>
+                              <p className="text-sm text-muted-foreground line-clamp-1">{item.deskripsi_proyek}</p>
                             </div>
                           </TableCell>
                           <TableCell>{item.divisi?.nama_divisi || "Tidak ada divisi"}</TableCell>
@@ -817,7 +804,7 @@ export default function KelolaProyek() {
                 />
                 <FormField
                   control={form.control}
-                  name="deskripsi"
+                  name="deskripsi_proyek"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Deskripsi</FormLabel>
@@ -902,9 +889,6 @@ export default function KelolaProyek() {
                   />
                 </div>
                 <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => setDialogOpen(true)}>
-                    Batal
-                  </Button>
                   <Button type="submit">{isEdit ? "Simpan Perubahan" : "Tambah Proyek"}</Button>
                 </DialogFooter>
               </form>
@@ -929,7 +913,7 @@ export default function KelolaProyek() {
                   <div>{selectedProyek.nama_proyek}</div>
 
                   <div className="font-medium">Deskripsi:</div>
-                  <div>{selectedProyek.deskripsi || "Tidak ada deskripsi"}</div>
+                  <div>{selectedProyek.deskripsi_proyek || "Tidak ada deskripsi"}</div>
 
                   <div className="font-medium">Divisi:</div>
                   <div>{selectedProyek.divisi?.nama_divisi || "Tidak ada divisi"}</div>

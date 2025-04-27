@@ -21,7 +21,10 @@ import Swal from "sweetalert2"
 // Schema validasi untuk form karyawan
 const karyawanFormSchema = z.object({
   nama_lengkap: z.string().min(3, "Nama lengkap minimal 3 karakter"),
-  id_divisi: z.number().nullable(),
+  id_divisi: z.number({
+    required_error: "Pilih divisi untuk proyek ini.",
+    invalid_type_error: "ID Divisi harus berupa angka."
+  }),
   email: z.string().email("Format email tidak valid"),
   alamat: z.string().min(5, "Alamat minimal 5 karakter"),
   jenis_kelamin: z.enum(["LAKI-LAKI", "PEREMPUAN"], {
@@ -50,7 +53,7 @@ export default function TambahKaryawan() {
     resolver: zodResolver(karyawanFormSchema),
     defaultValues: {
       nama_lengkap: "",
-      id_divisi: null,
+      id_divisi: 0,
       email: "",
       alamat: "",
       jenis_kelamin: "LAKI-LAKI",
@@ -64,7 +67,7 @@ export default function TambahKaryawan() {
 
   // Fetch divisi data
   useEffect(() => {
-    
+
     const getAllDataDivisi = async () => {
       try {
         const response = await axios.get<{ status: string; data: Divisi[] }>("/api/admin/getAllDataDivisi")
@@ -107,7 +110,7 @@ export default function TambahKaryawan() {
             } else {
                 Swal.fire({
                     title: 'Error!',
-                    text: response.data.message,
+                    text: response.data.message[0],
                     icon: 'error',
                     confirmButtonText: 'Ok'
                 })

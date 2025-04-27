@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Symfony\Component\CssSelector\Node\FunctionNode;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property int|null $id_divisi
@@ -51,4 +51,5 @@ class Proyek extends Model
     public function tugas() {
         return $this->hasMany(Tugas::class, 'id_proyek');
     }
+
 }

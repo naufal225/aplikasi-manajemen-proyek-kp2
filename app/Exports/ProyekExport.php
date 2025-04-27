@@ -44,7 +44,7 @@ class ProyekExport implements FromQuery, WithHeadings, WithMapping, WithColumnWi
             $proyek->nama_proyek,
             $proyek->divisi->nama_divisi ?? 'N/A',
             $proyek->progress . '%',
-            $proyek->tugas->count() ?? 0,
+            $proyek->tugas->count() ?? "0",
             $proyek->tugas->where('status', 'done')->count() ?? "0",
             $proyek->status,
             Carbon::parse($proyek->tanggal_mulai)->format('d-m-Y'),
