@@ -228,7 +228,8 @@ class KelolaDataProyekAdminController extends Controller
                 "target" => "divisi"
             ]);
             $proyek->update([
-                'status' => 'done'
+                'status' => 'done',
+                'tanggal_selesai' => Carbon::now()
             ]);
         } else if($request->hasil_review == "rejected") {
             Notifikasi::create([

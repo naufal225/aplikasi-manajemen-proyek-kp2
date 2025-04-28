@@ -64,6 +64,7 @@ export interface Proyek {
   status: "pending" | "in-progress" | "waiting_for_review" | "done"
   progress: number
   tanggal_mulai: string
+  tanggal_selesai: string
   tenggat_waktu: string
 }
 
@@ -83,7 +84,7 @@ export interface Tugas {
     bukti_pengerjaan: BuktiPengerjaan[] // diperbaiki dari string/null jadi array
     penanggung_jawab: Karyawan | null
   }
-  
+
   export interface BuktiPengerjaan {
     id: number
     path_file: string

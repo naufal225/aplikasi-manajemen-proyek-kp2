@@ -463,9 +463,15 @@ export default function KelolaProyek() {
   const indexOfLastItem = Math.min(currentPage * rowsPerPage, filteredProyek.length)
 
   // Cek apakah proyek telat
-  const isTelat = (proyek: Proyek) => {
-    if (proyek.status === "done") return false
-    return isAfter(new Date(), new Date(proyek.tenggat_waktu))
+  const isTelat = (proyek: Proyek): boolean => {
+    if (!proyek.tenggat_waktu) return false
+
+    const sekarang = new Date(proyek.tanggal_selesai)
+    const deadline = new Date(proyek.tenggat_waktu)
+
+    console.log(deadline)
+
+    return isAfter(sekarang, deadline)
   }
 
   // Render status badge
@@ -648,7 +654,7 @@ export default function KelolaProyek() {
                       <TableHead className="min-w-[120px]">Keterlambatan</TableHead>
                       <TableHead className="min-w-[150px]">Progress</TableHead>
                       <TableHead className="min-w-[120px]">Tanggal Mulai</TableHead>
-                      <TableHead className="min-w-[120px]">Tanggal Selesai</TableHead>
+                      <TableHead className="min-w-[120px]">Tenggat Waktu</TableHead>
                       <TableHead className="w-[100px] text-right">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
