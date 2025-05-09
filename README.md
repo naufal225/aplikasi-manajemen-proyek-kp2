@@ -38,24 +38,29 @@ A role-based project management web application designed to streamline internal 
 
 ## ⚙️ Installation (Developer Setup)
 
-```bash
 # Clone the repository
+``bash
 git clone https://github.com/naufal225/aplikasi-manajemen-proyek-kp2.git
 cd aplikasi-manajemen-proyek-kp2
 
 # Install PHP & JS dependencies
+``bash
 composer install
 npm install
 
 # Create environment file
+``bash
 cp .env.example .env
 
 # Generate app key
+``bash
 php artisan key:generate
 
 # Run migrations and seeders
+``bash
 php artisan migrate --seed
 
 # Start development servers
+``bash
 php artisan serve
 npm run dev
