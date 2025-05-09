@@ -1,4 +1,4 @@
-# Aplikasi Manajemen Proyek KP 2 — Admin Web Panel
+# Project Management Application KP 2 — Admin Web Panel
 
 ![Laravel](https://img.shields.io/badge/framework-Laravel-red)
 ![React](https://img.shields.io/badge/frontend-React-blue)
