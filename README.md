@@ -77,3 +77,8 @@ php artisan migrate --seed
 ```bash
 php artisan serve
 npm run dev
+```
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
