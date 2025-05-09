@@ -29,10 +29,18 @@ A role-based project management web application designed to streamline internal 
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Laravel 11
-- **Frontend**: React.js + Inertia.js
-- **UI Framework**: ShadCN UI
-- **Database**: MySQL
+### 🔧 Backend
+[![Laravel](https://img.shields.io/badge/Laravel-11-red?logo=laravel&logoColor=white)](https://laravel.com)
+
+### 🎨 Frontend
+[![React](https://img.shields.io/badge/React.js-18-blue?logo=react&logoColor=white)](https://reactjs.org)
+[![Inertia.js](https://img.shields.io/badge/Inertia.js-Server%20Driven-9cf?logo=inertia&logoColor=black)](https://inertiajs.com)
+
+### 💅 UI Framework
+[![ShadCN UI](https://img.shields.io/badge/ShadCN%20UI-Tailwind%20Components-38bdf8?logo=tailwindcss&logoColor=white)](https://ui.shadcn.dev)
+
+### 🛢️ Database
+[![MySQL](https://img.shields.io/badge/MySQL-Relational%20DBMS-orange?logo=mysql&logoColor=white)](https://www.mysql.com)
 
 ---
 
